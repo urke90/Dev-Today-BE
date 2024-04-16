@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node dist/index.js",
-    "dev": "nodemon src/index.ts"
+    "dev": "nodemon src/index.ts",
+    "lint": "eslint src/**/*.ts",
+    "format": "eslint src/**/*.ts --fix"
   },
   "repository": {
     "type": "git",
@@ -20,8 +22,10 @@
   "homepage": "https://github.com/urke90/Social-app-FE#readme",
   "dependencies": {
     "-": "^0.0.1",
+    "@typescript-eslint/parser": "^7.7.0",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "prettier": "^3.2.5",
     "save-dev": "^0.0.1-security"
   },
   "devDependencies": {
