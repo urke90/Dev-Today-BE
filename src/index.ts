@@ -16,3 +16,10 @@ app.listen(port, () => {
     `Social Media app from Marko and Uros at http://localhost:${port}`
   );
 });
+
+/**
+ *  1. Prvo pravim Prismu i modele za ceo app pocevsi od Usera
+ *  2. Prvo User Model => controller => rute => middleware koji hvata
+ */
+
+// https://github.com/microsoft/TypeScript-Node-Starter/blob/master/.eslintrc
