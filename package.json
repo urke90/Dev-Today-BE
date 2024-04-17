@@ -8,7 +8,8 @@
     "start": "node dist/index.js",
     "dev": "nodemon src/index.ts",
     "lint": "eslint src/**/*.ts",
-    "format": "eslint src/**/*.ts --fix"
+    "format": "eslint src/**/*.ts --fix",
+    "prismaTest": "nodemon src/prisma-client.ts"
   },
   "repository": {
     "type": "git",
@@ -22,9 +23,12 @@
   "homepage": "https://github.com/urke90/Social-app-FE#readme",
   "dependencies": {
     "-": "^0.0.1",
+    "@prisma/client": "^5.12.1",
+    "@vercel/postgres": "^0.8.0",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "prettier": "^3.2.5",
+    "prisma": "^5.12.1",
     "save-dev": "^0.0.1-security"
   },
   "devDependencies": {
