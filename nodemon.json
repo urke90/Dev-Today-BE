@@ -4,5 +4,5 @@
   },
   "watch": ["src"],
   "ext": "ts",
-  "exec": "ts-node src/prisma-client.ts"
+  "exec": "ts-node src/app.ts"
 }
