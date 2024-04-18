@@ -1,29 +1,20 @@
-import type { Request } from 'express';
-
 import express from 'express';
+import {
+  getAllUsers,
+  registerUser,
+  loginUser,
+  getUserById,
+  loginUserWithProvider,
+} from '../controllers/user-ctrl';
 
 export const userRoutes = express.Router();
 
-userRoutes.get('/', (req, res, next) => {
-  console.log('This should be /api/users/ route');
+userRoutes.get('/', getAllUsers);
 
-  console.log('req BODY', req.body);
+userRoutes.get('/:id', getUserById);
 
-  res.status(200).json({
-    userId: 'RADI POSTMAN',
-  });
-});
+userRoutes.post('/register', registerUser);
 
-userRoutes.get('/:id', (req, res) => {
-  console.log('This should be /api/users/123123 route');
-  const userId = req.params.id;
-  console.log('userId', userId);
+userRoutes.post('/login', loginUser);
 
-  res.json({ userId });
-});
-
-userRoutes.post('/', (req, res) => {
-  console.log('req U POSU', req.body);
-
-  res.send('Pogodjena post ruta /api/user');
-});
+userRoutes.post('/login-provider', loginUserWithProvider);

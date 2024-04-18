@@ -13,7 +13,6 @@ app.use(express.json());
 
 app.get('/', (req, res) => {
   res.send('EVO RADI NODE + EXPRESS APP !');
-  console.log('pdasdfasfsadfads');
 });
 
 app.use('/api/user', userRoutes);

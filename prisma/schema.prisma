@@ -16,12 +16,11 @@ datasource db {
 
 model User {
   id               String    @id @default(uuid())
-  firstName        String
-  lastName         String
+  name             String
   email            String    @unique
-  password         String
-  currentKnowledge String
-  codingAmbitions  String
+  password         String?
+  currentKnowledge String?
+  codingAmbitions  String?
   preferredSkills  String[]
   contents         Content[]
   likedContents    Content[] @relation("ContentLikes")
@@ -36,11 +35,6 @@ model Content {
   authorId  String
   likedBy   User[]       @relation("ContentLikes")
 }
-
-// Content Type = 'Post' | 'Meetup' | 'Podcasts'
-
-//  1. zavrsen User
-//  2. rute za user-a oponasa next auth github note
 
 enum EContentType {
   POST
