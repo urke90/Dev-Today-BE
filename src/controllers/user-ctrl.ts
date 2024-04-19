@@ -8,14 +8,19 @@ export const getUserById: RequestHandler<{ id: string }> = async (
   req: Request,
   res: Response
 ) => {
-  const userId = req.params.id;
+  const id = req.params.id;
 
-  console.log(
-    'This should be /api/users/dasdasdasdasdasdasdasdasdasdasdas route'
-  );
-  console.log('userId', userId);
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id },
+    });
 
-  res.json({ userId });
+    if (!user) return res.status(404).send('User not found!');
+
+    res.status(200).json({ user });
+  } catch (error) {
+    console.log('Error fetching user with id', error);
+  }
 };
 
 export const getAllUsers = async (req: Request, res: Response) => {
@@ -62,8 +67,6 @@ export const registerUser: RequestHandler = async (
     });
 
     res.status(201).send('User created successfully!');
-
-    console.log('newUser', newUser);
   } catch (error) {
     console.log('Error creating new user', error);
   }
