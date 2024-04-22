@@ -1,6 +1,12 @@
 import type { Request, Response, RequestHandler } from 'express';
 import prisma from '../prisma-client';
 import { genSalt, hash, compare } from 'bcrypt';
+import { TypedRequestBody } from 'zod-express-middleware';
+import {
+  loginProviderSchema,
+  loginSchema,
+  registerSchema,
+} from '../lib/zod/user';
 
 // ----------------------------------------------------------------
 
@@ -33,17 +39,11 @@ export const getAllUsers = async (req: Request, res: Response) => {
   });
 };
 
-interface IRegisterUserReqBody {
-  name: string;
-  email: string;
-  password: string;
-}
-
 export const registerUser: RequestHandler = async (
-  req: Request,
+  req: TypedRequestBody<typeof registerSchema>,
   res: Response
 ) => {
-  const { name, email, password } = <IRegisterUserReqBody>req.body;
+  const { userName, email, password } = req.body;
 
   try {
     const existingUser = await prisma.user.findUnique({
@@ -60,28 +60,23 @@ export const registerUser: RequestHandler = async (
 
     const newUser = await prisma.user.create({
       data: {
-        name,
+        userName,
         email,
         password: hashPw,
       },
     });
 
-    res.status(201).send('User created successfully!');
+    res.status(201).json({ user: newUser });
   } catch (error) {
     console.log('Error creating new user', error);
   }
 };
 
-interface ILoginUserReqBody {
-  email: string;
-  password: string;
-}
-
 export const loginUser: RequestHandler = async (
-  req: Request,
+  req: TypedRequestBody<typeof loginSchema>,
   res: Response
 ) => {
-  const { email, password } = <ILoginUserReqBody>req.body;
+  const { email, password } = req.body;
 
   try {
     const existingUser = await prisma.user.findUnique({
@@ -93,24 +88,20 @@ export const loginUser: RequestHandler = async (
 
     if (!existingUser.password) throw new Error('User has no password!');
 
-    if (!compare(existingUser.password, password))
+    if (!(await compare(existingUser.password, password)))
       return res.status(400).send('You have entered wrong password!');
 
-    res.status(200).send('Login successfull!');
+    res.status(200).json({ user: existingUser });
   } catch (error) {
     console.log('Error logging in user', error);
   }
 };
 
-interface ILoginUserProviderReqBody {
-  email: string;
-}
-
 export const loginUserWithProvider: RequestHandler = async (
-  req: Request,
+  req: TypedRequestBody<typeof loginProviderSchema>,
   res: Response
 ) => {
-  const { email } = <ILoginUserProviderReqBody>req.body;
+  const { email } = req.body;
 
   try {
     const existingUser = await prisma.user.findUnique({
@@ -120,7 +111,7 @@ export const loginUserWithProvider: RequestHandler = async (
     if (!existingUser)
       return res.status(404).send('User with provided email not found!');
 
-    res.status(200).send('Login successfull!');
+    res.status(200).json({ user: existingUser });
   } catch (error) {
     console.log('Error logging in user', error);
   }
