@@ -1,17 +1,20 @@
 import express from 'express';
+import { validateRequestBody } from 'zod-express-middleware';
+
+import {
+  loginSchema,
+  loginProviderSchema,
+  registerSchema,
+} from '@/lib/zod/user';
 import {
   getAllUsers,
-  registerUser,
   loginUser,
   getUserById,
   loginUserWithProvider,
-} from '../controllers/user-ctrl';
-import { validateRequestBody } from 'zod-express-middleware';
-import {
-  loginSchema,
-  registerSchema,
-  loginProviderSchema,
-} from '../lib/zod/user';
+  registerUser,
+} from '@/controllers/user-ctrl';
+
+// ----------------------------------------------------------------
 
 export const userRoutes = express.Router();
 

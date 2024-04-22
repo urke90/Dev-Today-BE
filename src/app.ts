@@ -2,7 +2,9 @@ import express from 'express';
 import dotenv from 'dotenv';
 
 // routes
-import { userRoutes } from './routes/user';
+import { userRoutes } from '@/routes/user';
+
+// ----------------------------------------------------------------
 
 const app = express();
 dotenv.config();
@@ -11,9 +13,9 @@ const port = process.env.PORT || 8080;
 
 app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.send('EVO RADI NODE + EXPRESS APP !');
-});
+// app.get('/', (req, res) => {
+//   res.send('EVO RADI NODE + EXPRESS APP !');
+// });
 
 app.use('/api/user', userRoutes);
 

@@ -1,12 +1,12 @@
 import type { Request, Response, RequestHandler } from 'express';
-import prisma from '../prisma-client';
+import prisma from '@/database/prisma-client';
 import { genSalt, hash, compare } from 'bcrypt';
 import { TypedRequestBody } from 'zod-express-middleware';
 import {
   loginProviderSchema,
   loginSchema,
   registerSchema,
-} from '../lib/zod/user';
+} from '@/lib/zod/user';
 
 // ----------------------------------------------------------------
 
