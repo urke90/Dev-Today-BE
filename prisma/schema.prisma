@@ -15,28 +15,28 @@ datasource db {
 }
 
 model User {
-  id               String      @id @default(uuid())
-  userName         String
-  name             String?
-  email            String      @unique
-  password         String?
-  currentKnowledge String?
-  codingAmbitions  String[]
-  isOnboarding     Boolean?
-  preferredSkills  String[]
-  contents         Content[]
-  likedContents    Content[]   @relation("ContentLikes")
-  bio              String?
-  avatarImg        String?
-  createdAt        DateTime    @default(now())
-  instagramName    String?
-  instagramLink    String?
-  linkedinName     String?
-  linkedinLink     String?
-  twitterName      String?
-  twitterLink      String?
-  followers        Followers[] @relation("follower")
-  following        Followers[] @relation("following")
+  id                    String      @id @default(uuid())
+  userName              String
+  name                  String?
+  email                 String      @unique
+  password              String?
+  currentKnowledge      String?
+  codingAmbitions       String[]
+  isOnboardingCompleted Boolean?
+  preferredSkills       String[]
+  contents              Content[]
+  likedContents         Content[]   @relation("ContentLikes")
+  bio                   String?
+  avatarImg             String?
+  createdAt             DateTime    @default(now())
+  instagramName         String?
+  instagramLink         String?
+  linkedinName          String?
+  linkedinLink          String?
+  twitterName           String?
+  twitterLink           String?
+  followers             Followers[] @relation("follower")
+  following             Followers[] @relation("following")
 }
 
 model Followers {
