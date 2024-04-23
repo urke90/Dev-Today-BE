@@ -1,11 +1,19 @@
 import type { Request, Response, RequestHandler } from 'express';
-import prisma from '@/database/prisma-client';
+import { prisma, Prisma } from '@/database/prisma-client';
 import { genSalt, hash, compare } from 'bcrypt';
-import { TypedRequestBody } from 'zod-express-middleware';
+import {
+  type TypedRequestBody,
+  sendErrors,
+  TypedRequest,
+} from 'zod-express-middleware';
+import { type ZodError, fromZodError, errorMap } from 'zod-validation-error';
+import { z } from 'zod';
 import {
   loginProviderSchema,
   loginSchema,
   registerSchema,
+  paramsIdSchema,
+  onboardingSchema,
 } from '@/lib/zod/user';
 
 // ----------------------------------------------------------------
@@ -30,12 +38,8 @@ export const getUserById: RequestHandler<{ id: string }> = async (
 };
 
 export const getAllUsers = async (req: Request, res: Response) => {
-  console.log('This should be /api/users/ route');
-
-  console.log('req BODY', req.body);
-
   res.status(200).json({
-    userId: 'RADI CONTROLLER KOJE SPLIT IZ ROUTES',
+    message: 'Get all users!',
   });
 };
 
@@ -46,13 +50,6 @@ export const registerUser: RequestHandler = async (
   const { userName, email, password } = req.body;
 
   try {
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (existingUser)
-      return res.status(409).send('User with provided email already exists!');
-
     const saltRounds = 10;
 
     const salt = await genSalt(saltRounds);
@@ -68,7 +65,14 @@ export const registerUser: RequestHandler = async (
 
     res.status(201).json({ user: newUser });
   } catch (error) {
-    console.log('Error creating new user', error);
+    console.log('Error registering user!', error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2002') {
+        res
+          .status(409)
+          .json({ message: 'User with provided email already exists!' });
+      }
+    }
   }
 };
 
@@ -84,12 +88,16 @@ export const loginUser: RequestHandler = async (
     });
 
     if (!existingUser)
-      return res.status(404).send('User with provided email not found!');
+      return res
+        .status(404)
+        .json({ message: 'User with provided email not found!' });
 
     if (!existingUser.password) throw new Error('User has no password!');
 
     if (!(await compare(existingUser.password, password)))
-      return res.status(400).send('You have entered wrong password!');
+      return res
+        .status(400)
+        .json({ message: 'You have entered wrong password!' });
 
     res.status(200).json({ user: existingUser });
   } catch (error) {
@@ -114,5 +122,25 @@ export const loginUserWithProvider: RequestHandler = async (
     res.status(200).json({ user: existingUser });
   } catch (error) {
     console.log('Error logging in user', error);
+  }
+};
+
+export const updateUser = async (
+  req: TypedRequest<typeof paramsIdSchema, any, typeof onboardingSchema>,
+  res: Response
+) => {
+  const id = req.params.id;
+  const { codingAmbitions, currentKnowledge, preferredSkills, isOnboarding } =
+    req.body;
+
+  try {
+    const updatedUser = await prisma.user.update({
+      where: {
+        id,
+      },
+      data: {},
+    });
+  } catch (error) {
+    console.log('Error');
   }
 };

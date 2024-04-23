@@ -22,7 +22,7 @@ model User {
   password         String?
   currentKnowledge String?
   codingAmbitions  String?
-  onboarding       Boolean?
+  isOnboarding     Boolean?
   preferredSkills  String[]
   contents         Content[]
   likedContents    Content[]   @relation("ContentLikes")

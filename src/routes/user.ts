@@ -1,10 +1,13 @@
-import express from 'express';
+import express, { type Request, type Response, NextFunction } from 'express';
 import { validateRequestBody } from 'zod-express-middleware';
+
+import { z } from 'zod';
 
 import {
   loginSchema,
   loginProviderSchema,
   registerSchema,
+  onboardingSchema,
 } from '@/lib/zod/user';
 import {
   getAllUsers,
@@ -12,6 +15,7 @@ import {
   getUserById,
   loginUserWithProvider,
   registerUser,
+  updateUser,
 } from '@/controllers/user-ctrl';
 
 // ----------------------------------------------------------------
@@ -22,12 +26,33 @@ userRoutes.get('/', getAllUsers);
 
 userRoutes.get('/:id', getUserById);
 
-userRoutes.post('/register', validateRequestBody(registerSchema), registerUser);
+const validateBody =
+  (schema: z.ZodObject<any>) =>
+  (req: Request, res: Response, next: NextFunction) => {
+    const bodyValidation = schema.safeParse(req.body);
+    // @ts-ignore
+    if (bodyValidation.error instanceof z.ZodError) {
+      // @ts-ignore
+      const validationError = bodyValidation.error.errors.map((error) => ({
+        type: 'manual',
+        name: error.path[0],
+        message: error.message,
+      }));
 
-userRoutes.post('/login', validateRequestBody(loginSchema), loginUser);
+      return res.status(400).json(validationError);
+    }
+
+    next();
+  };
+
+userRoutes.post('/register', validateBody(registerSchema), registerUser);
+
+userRoutes.post('/login', validateBody(loginSchema), loginUser);
 
 userRoutes.post(
   '/login-provider',
-  validateRequestBody(loginProviderSchema),
+  validateBody(loginProviderSchema),
   loginUserWithProvider
 );
+
+userRoutes.patch('/:id/update', validateBody(onboardingSchema), updateUser);

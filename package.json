@@ -31,7 +31,8 @@
     "prettier": "^3.2.5",
     "prisma": "^5.12.1",
     "save-dev": "^0.0.1-security",
-    "zod-express-middleware": "^1.4.0"
+    "zod-express-middleware": "^1.4.0",
+    "zod-validation-error": "^3.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.0.2",
