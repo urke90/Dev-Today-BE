@@ -1,10 +1,10 @@
-import express from 'express';
-import dotenv from 'dotenv';
+import express from "express";
+import dotenv from "dotenv";
 
 // routes
-import { userRoutes } from '@/routes/user';
-import { ZodError, fromZodError, errorMap } from 'zod-validation-error';
-import { z } from 'zod';
+import { userRoutes } from "@/routes/user";
+import { ZodError, fromZodError, errorMap } from "zod-validation-error";
+import { z } from "zod";
 
 z.setErrorMap(errorMap);
 
@@ -21,13 +21,13 @@ app.use(express.json());
 //   res.send('EVO RADI NODE + EXPRESS APP !');
 // });
 
-app.use('/api/user', userRoutes);
+app.use("/api/user", userRoutes);
 
 // @ts-ignore
 app.use((err, req, res, next) => {
   if (err instanceof z.ZodError) {
     const validationError = err.errors.map((error) => ({
-      type: 'manual',
+      type: "manual",
       name: error.path[0],
       message: error.message,
     }));
@@ -35,7 +35,7 @@ app.use((err, req, res, next) => {
     return res.status(400).json(validationError);
   }
 
-  res.status(500).json({ message: 'An unknown error occured.' });
+  res.status(500).json({ message: "An unknown error occured." });
 });
 
 app.listen(port, () => {
