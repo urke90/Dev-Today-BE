@@ -6,8 +6,6 @@ import {
   sendErrors,
   TypedRequest,
 } from 'zod-express-middleware';
-import { type ZodError, fromZodError, errorMap } from 'zod-validation-error';
-import { z } from 'zod';
 import {
   loginProviderSchema,
   loginSchema,
@@ -15,6 +13,7 @@ import {
   paramsIdSchema,
   onboardingSchema,
 } from '@/lib/zod/user';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 // ----------------------------------------------------------------
 
@@ -125,7 +124,8 @@ export const loginUserWithProvider: RequestHandler = async (
   }
 };
 
-export const updateUser = async (
+export const updateUserOnboarding = async (
+  // TODO: have to fix "any" since
   req: TypedRequest<typeof paramsIdSchema, any, typeof onboardingSchema>,
   res: Response
 ) => {
@@ -138,9 +138,21 @@ export const updateUser = async (
       where: {
         id,
       },
-      data: {},
+      data: {
+        codingAmbitions,
+        currentKnowledge,
+        preferredSkills,
+        isOnboarding,
+      },
     });
+
+    // console.log('updatedUser', updatedUser);
+    res.status(201).json({ user: updatedUser });
   } catch (error) {
-    console.log('Error');
+    if (error instanceof PrismaClientKnownRequestError) {
+      if (error.code === 'P2025') {
+        res.status(404).json({ message: 'User not found!' });
+      }
+    }
   }
 };

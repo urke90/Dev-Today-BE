@@ -15,7 +15,7 @@ import {
   getUserById,
   loginUserWithProvider,
   registerUser,
-  updateUser,
+  updateUserOnboarding,
 } from '@/controllers/user-ctrl';
 
 // ----------------------------------------------------------------
@@ -55,4 +55,8 @@ userRoutes.post(
   loginUserWithProvider
 );
 
-userRoutes.patch('/:id/update', validateBody(onboardingSchema), updateUser);
+userRoutes.patch(
+  '/:id/onboarding',
+  validateBody(onboardingSchema),
+  updateUserOnboarding
+);

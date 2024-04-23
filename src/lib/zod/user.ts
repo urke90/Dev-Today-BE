@@ -33,10 +33,10 @@ export const loginProviderSchema = z.object({
 });
 
 export const onboardingSchema = z.object({
-  currentKnowledge: z.string().min(1),
+  currentKnowledge: z.string().trim().min(1),
   codingAmbitions: z.array(z.string()).min(1),
   preferredSkills: z.array(z.string().max(17)).min(1),
-  isOnboarding: z.boolean().optional(),
+  isOnboarding: z.boolean(),
 });
 
 export const paramsIdSchema = z.object({

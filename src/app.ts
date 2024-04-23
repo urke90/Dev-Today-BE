@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 // routes
 import { userRoutes } from '@/routes/user';
 import { ZodError, fromZodError, errorMap } from 'zod-validation-error';
+import cors from 'cors';
 import { z } from 'zod';
 
 z.setErrorMap(errorMap);
@@ -16,10 +17,7 @@ dotenv.config();
 const port = process.env.PORT || 8080;
 
 app.use(express.json());
-
-// app.get('/', (req, res) => {
-//   res.send('EVO RADI NODE + EXPRESS APP !');
-// });
+app.use(cors());
 
 app.use('/api/user', userRoutes);
 

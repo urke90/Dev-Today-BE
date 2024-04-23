@@ -21,7 +21,7 @@ model User {
   email            String      @unique
   password         String?
   currentKnowledge String?
-  codingAmbitions  String?
+  codingAmbitions  String[]
   isOnboarding     Boolean?
   preferredSkills  String[]
   contents         Content[]
