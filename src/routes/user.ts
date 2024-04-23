@@ -1,5 +1,8 @@
 import express, { type Request, type Response, NextFunction } from 'express';
-import { validateRequestBody } from 'zod-express-middleware';
+import {
+  validateRequestBody,
+  validateRequestParams,
+} from 'zod-express-middleware';
 
 import { z } from 'zod';
 
@@ -8,11 +11,12 @@ import {
   loginProviderSchema,
   registerSchema,
   onboardingSchema,
+  paramsEmailSchema,
 } from '@/lib/zod/user';
 import {
   getAllUsers,
   loginUser,
-  getUserById,
+  getUserByEmail,
   loginUserWithProvider,
   registerUser,
   updateUserOnboarding,
@@ -24,7 +28,11 @@ export const userRoutes = express.Router();
 
 userRoutes.get('/', getAllUsers);
 
-userRoutes.get('/:id', getUserById);
+userRoutes.get(
+  '/:email',
+  validateRequestParams(paramsEmailSchema),
+  getUserByEmail
+);
 
 const validateBody =
   (schema: z.ZodObject<any>) =>

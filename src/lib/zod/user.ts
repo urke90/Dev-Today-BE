@@ -42,3 +42,7 @@ export const onboardingSchema = z.object({
 export const paramsIdSchema = z.object({
   id: z.string().trim().min(1),
 });
+
+export const paramsEmailSchema = z.object({
+  email: z.string().trim().email(),
+});

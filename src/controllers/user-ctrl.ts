@@ -1,9 +1,9 @@
-import type { Request, Response, RequestHandler } from 'express';
-import { prisma, Prisma } from '@/database/prisma-client';
+import type { Request, Response } from 'express';
+import { prisma, Prisma, excludeField } from '@/database/prisma-client';
 import { genSalt, hash, compare } from 'bcrypt';
 import {
   type TypedRequestBody,
-  sendErrors,
+  type TypedRequestParams,
   TypedRequest,
 } from 'zod-express-middleware';
 import {
@@ -12,27 +12,29 @@ import {
   registerSchema,
   paramsIdSchema,
   onboardingSchema,
+  paramsEmailSchema,
 } from '@/lib/zod/user';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 // ----------------------------------------------------------------
 
-export const getUserById: RequestHandler<{ id: string }> = async (
-  req: Request,
+export const getUserByEmail = async (
+  req: TypedRequestParams<typeof paramsEmailSchema>,
   res: Response
 ) => {
-  const id = req.params.id;
+  const email = req.params.email;
 
   try {
     const user = await prisma.user.findUnique({
-      where: { id },
+      where: { email },
+      select: excludeField('User', ['password']),
     });
 
     if (!user) return res.status(404).send('User not found!');
 
     res.status(200).json({ user });
   } catch (error) {
-    console.log('Error fetching user with id', error);
+    console.log('Error fetching user with email', error);
   }
 };
 
@@ -42,7 +44,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
   });
 };
 
-export const registerUser: RequestHandler = async (
+export const registerUser = async (
   req: TypedRequestBody<typeof registerSchema>,
   res: Response
 ) => {
@@ -62,7 +64,14 @@ export const registerUser: RequestHandler = async (
       },
     });
 
-    res.status(201).json({ user: newUser });
+    const userWithoutPassword = excludeField('User', ['password']);
+
+    console.log(
+      '111111111111111111111111111111111111111111111111111',
+      userWithoutPassword
+    );
+
+    res.status(201).json({ user: userWithoutPassword });
   } catch (error) {
     console.log('Error registering user!', error);
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -75,7 +84,7 @@ export const registerUser: RequestHandler = async (
   }
 };
 
-export const loginUser: RequestHandler = async (
+export const loginUser = async (
   req: TypedRequestBody<typeof loginSchema>,
   res: Response
 ) => {
@@ -98,13 +107,15 @@ export const loginUser: RequestHandler = async (
         .status(400)
         .json({ message: 'You have entered wrong password!' });
 
-    res.status(200).json({ user: existingUser });
+    const userWithoutPassword = excludeField('User', ['password']);
+
+    res.status(200).json({ user: userWithoutPassword });
   } catch (error) {
     console.log('Error logging in user', error);
   }
 };
 
-export const loginUserWithProvider: RequestHandler = async (
+export const loginUserWithProvider = async (
   req: TypedRequestBody<typeof loginProviderSchema>,
   res: Response
 ) => {
@@ -113,6 +124,7 @@ export const loginUserWithProvider: RequestHandler = async (
   try {
     const existingUser = await prisma.user.findUnique({
       where: { email },
+      select: excludeField('User', ['password']),
     });
 
     if (!existingUser)
@@ -146,8 +158,9 @@ export const updateUserOnboarding = async (
       },
     });
 
-    // console.log('updatedUser', updatedUser);
-    res.status(201).json({ user: updatedUser });
+    const userWithoutPassword = excludeField('User', ['password']);
+
+    res.status(201).json({ user: userWithoutPassword });
   } catch (error) {
     if (error instanceof PrismaClientKnownRequestError) {
       if (error.code === 'P2025') {
