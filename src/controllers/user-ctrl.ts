@@ -66,11 +66,6 @@ export const registerUser = async (
 
     const userWithoutPassword = excludeField('User', ['password']);
 
-    console.log(
-      '111111111111111111111111111111111111111111111111111',
-      userWithoutPassword
-    );
-
     res.status(201).json({ user: userWithoutPassword });
   } catch (error) {
     console.log('Error registering user!', error);
@@ -142,8 +137,12 @@ export const updateUserOnboarding = async (
   res: Response
 ) => {
   const id = req.params.id;
-  const { codingAmbitions, currentKnowledge, preferredSkills, isOnboarding } =
-    req.body;
+  const {
+    codingAmbitions,
+    currentKnowledge,
+    preferredSkills,
+    isOnboardingCompleted,
+  } = req.body;
 
   try {
     const updatedUser = await prisma.user.update({
@@ -154,7 +153,7 @@ export const updateUserOnboarding = async (
         codingAmbitions,
         currentKnowledge,
         preferredSkills,
-        isOnboarding,
+        isOnboardingCompleted,
       },
     });
 
