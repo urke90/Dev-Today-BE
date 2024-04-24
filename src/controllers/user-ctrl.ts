@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { prisma, Prisma, excludeField } from '@/database/prisma-client';
+import { prisma, Prisma } from '@/database/prisma-client';
 import { genSalt, hash, compare } from 'bcrypt';
 import {
   type TypedRequestBody,
@@ -15,6 +15,7 @@ import {
   paramsEmailSchema,
 } from '@/lib/zod/user';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { excludeField, excludeProperty } from '@/utils/prisma-functions';
 
 // ----------------------------------------------------------------
 
@@ -64,9 +65,9 @@ export const registerUser = async (
       },
     });
 
-    const userWithoutPassword = excludeField('User', ['password']);
+    const user = excludeProperty(newUser, ['password']);
 
-    res.status(201).json({ user: userWithoutPassword });
+    res.status(201).json({ user });
   } catch (error) {
     console.log('Error registering user!', error);
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -97,14 +98,14 @@ export const loginUser = async (
 
     if (!existingUser.password) throw new Error('User has no password!');
 
-    if (!(await compare(existingUser.password, password)))
+    if (!(await compare(password, existingUser.password)))
       return res
         .status(400)
         .json({ message: 'You have entered wrong password!' });
 
-    const userWithoutPassword = excludeField('User', ['password']);
+    const user = excludeProperty(existingUser, ['password']);
 
-    res.status(200).json({ user: userWithoutPassword });
+    res.status(200).json({ user });
   } catch (error) {
     console.log('Error logging in user', error);
   }
@@ -157,10 +158,11 @@ export const updateUserOnboarding = async (
       },
     });
 
-    const userWithoutPassword = excludeField('User', ['password']);
+    const user = excludeProperty(updatedUser, ['password']);
 
-    res.status(201).json({ user: userWithoutPassword });
+    res.status(200).json({ user });
   } catch (error) {
+    console.log('Error updating user onboarding!', error);
     if (error instanceof PrismaClientKnownRequestError) {
       if (error.code === 'P2025') {
         res.status(404).json({ message: 'User not found!' });
