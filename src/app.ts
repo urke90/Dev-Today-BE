@@ -1,40 +1,24 @@
 import express from 'express';
 import dotenv from 'dotenv';
-
-// routes
-import { userRoutes } from '@/routes/user';
-import { ZodError, fromZodError, errorMap } from 'zod-validation-error';
 import cors from 'cors';
 import { z } from 'zod';
+import { errorMap } from 'zod-validation-error';
 
-z.setErrorMap(errorMap);
+import { CORS_CONFIG } from '@/config';
+import { userRoutes } from '@/routes/user';
 
 // ----------------------------------------------------------------
 
 const app = express();
 dotenv.config();
+z.setErrorMap(errorMap);
 
 const port = process.env.PORT || 8080;
 
 app.use(express.json());
-app.use(cors());
+app.use(cors(CORS_CONFIG));
 
 app.use('/api/user', userRoutes);
-
-// @ts-ignore
-app.use((err, req, res, next) => {
-  if (err instanceof z.ZodError) {
-    const validationError = err.errors.map((error) => ({
-      type: 'manual',
-      name: error.path[0],
-      message: error.message,
-    }));
-
-    return res.status(400).json(validationError);
-  }
-
-  res.status(500).json({ message: 'An unknown error occured.' });
-});
 
 app.listen(port, () => {
   console.log(
