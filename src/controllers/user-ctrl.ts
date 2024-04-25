@@ -35,6 +35,9 @@ export const getUserByEmail = async (
 
     res.status(200).json({ user });
   } catch (error) {
+    res.status(500).json({
+      message: 'Oops! An internal server error occurred on our end.',
+    });
     console.log('Error fetching user with email', error);
   }
 };
@@ -77,6 +80,9 @@ export const registerUser = async (
           .json({ message: 'User with provided email already exists!' });
       }
     }
+    res.status(500).json({
+      message: 'Oops! An internal server error occurred on our end.',
+    });
   }
 };
 
@@ -108,6 +114,9 @@ export const loginUser = async (
     res.status(200).json({ user });
   } catch (error) {
     console.log('Error logging in user', error);
+    res.status(500).json({
+      message: 'Oops! An internal server error occurred on our end.',
+    });
   }
 };
 
@@ -129,6 +138,9 @@ export const loginUserWithProvider = async (
     res.status(200).json({ user: existingUser });
   } catch (error) {
     console.log('Error logging in user', error);
+    res.status(500).json({
+      message: 'Oops! An internal server error occurred on our end.',
+    });
   }
 };
 
@@ -168,5 +180,8 @@ export const updateUserOnboarding = async (
         res.status(404).json({ message: 'User not found!' });
       }
     }
+    res.status(500).json({
+      message: 'Oops! An internal server error occurred on our end.',
+    });
   }
 };

@@ -1,11 +1,6 @@
-import express, { type Request, type Response, NextFunction } from 'express';
-import {
-  validateRequestBody,
-  validateRequestParams,
-} from 'zod-express-middleware';
-
-import { z } from 'zod';
-
+import express from 'express';
+import { validateRequestParams } from 'zod-express-middleware';
+import { validateUserReqBody } from '@/utils/middlewares';
 import {
   loginSchema,
   loginProviderSchema,
@@ -34,37 +29,18 @@ userRoutes.get(
   getUserByEmail
 );
 
-const validateBody =
-  (schema: z.ZodObject<any>) =>
-  (req: Request, res: Response, next: NextFunction) => {
-    const bodyValidation = schema.safeParse(req.body);
-    // @ts-ignore
-    if (bodyValidation.error instanceof z.ZodError) {
-      // @ts-ignore
-      const validationError = bodyValidation.error.errors.map((error) => ({
-        type: 'manual',
-        name: error.path[0],
-        message: error.message,
-      }));
+userRoutes.post('/register', validateUserReqBody(registerSchema), registerUser);
 
-      return res.status(400).json(validationError);
-    }
-
-    next();
-  };
-
-userRoutes.post('/register', validateBody(registerSchema), registerUser);
-
-userRoutes.post('/login', validateBody(loginSchema), loginUser);
+userRoutes.post('/login', validateUserReqBody(loginSchema), loginUser);
 
 userRoutes.post(
   '/login-provider',
-  validateBody(loginProviderSchema),
+  validateUserReqBody(loginProviderSchema),
   loginUserWithProvider
 );
 
 userRoutes.patch(
   '/:id/onboarding',
-  validateBody(onboardingSchema),
+  validateUserReqBody(onboardingSchema),
   updateUserOnboarding
 );
