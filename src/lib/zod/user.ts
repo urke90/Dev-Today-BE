@@ -30,6 +30,8 @@ export const loginProviderSchema = z.object({
     .string({ required_error: 'Email is required!' })
     .trim()
     .email('Please provide valid email address!'),
+  name: z.string().trim(),
+  avatarImg: z.string().trim(),
 });
 
 export const onboardingSchema = z.object({
