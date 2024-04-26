@@ -35,6 +35,9 @@ export const getUserByEmail = async (
 
     res.status(200).json({ user });
   } catch (error) {
+    res.status(500).json({
+      message: 'Oops! An internal server error occurred on our end.',
+    });
     console.log('Error fetching user with email', error);
   }
 };
@@ -77,6 +80,9 @@ export const registerUser = async (
           .json({ message: 'User with provided email already exists!' });
       }
     }
+    res.status(500).json({
+      message: 'Oops! An internal server error occurred on our end.',
+    });
   }
 };
 
@@ -108,6 +114,9 @@ export const loginUser = async (
     res.status(200).json({ user });
   } catch (error) {
     console.log('Error logging in user', error);
+    res.status(500).json({
+      message: 'Oops! An internal server error occurred on our end.',
+    });
   }
 };
 
@@ -115,7 +124,7 @@ export const loginUserWithProvider = async (
   req: TypedRequestBody<typeof loginProviderSchema>,
   res: Response
 ) => {
-  const { email } = req.body;
+  const { email, name, avatarImg } = req.body;
 
   try {
     const existingUser = await prisma.user.findUnique({
@@ -123,12 +132,23 @@ export const loginUserWithProvider = async (
       select: excludeField('User', ['password']),
     });
 
-    if (!existingUser)
-      return res.status(404).send('User with provided email not found!');
+    if (existingUser) return res.status(200).json({ user: existingUser });
 
-    res.status(200).json({ user: existingUser });
+    const newUser = await prisma.user.create({
+      data: {
+        name,
+        userName: name,
+        email,
+        avatarImg,
+      },
+    });
+
+    res.status(200).json({ user: newUser });
   } catch (error) {
     console.log('Error logging in user', error);
+    res.status(500).json({
+      message: 'Oops! An internal server error occurred on our end.',
+    });
   }
 };
 
@@ -168,5 +188,8 @@ export const updateUserOnboarding = async (
         res.status(404).json({ message: 'User not found!' });
       }
     }
+    res.status(500).json({
+      message: 'Oops! An internal server error occurred on our end.',
+    });
   }
 };

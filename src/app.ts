@@ -13,22 +13,17 @@ const app = express();
 dotenv.config();
 z.setErrorMap(errorMap);
 
-const port = process.env.PORT || 8080;
-
+// used to parse incoming requests with JSON payload
 app.use(express.json());
+// used for CORS, to enable domains from which server can be interacted
 app.use(cors(CORS_CONFIG));
 
 app.use('/api/user', userRoutes);
+
+const port = process.env.PORT || 8080;
 
 app.listen(port, () => {
   console.log(
     `Social Media app from Marko and Uros at http://localhost:${port}`
   );
 });
-
-/**
- *  1. Prvo pravim Prismu i modele za ceo app pocevsi od Usera
- *  2. Prvo User Model => controller => rute => middleware koji hvata
- */
-
-// https://github.com/microsoft/TypeScript-Node-Starter/blob/master/.eslintrc
