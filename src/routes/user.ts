@@ -7,6 +7,7 @@ import {
   registerSchema,
   onboardingSchema,
   paramsEmailSchema,
+  profileSchema,
 } from '@/lib/zod/user';
 import {
   getAllUsers,
@@ -15,11 +16,21 @@ import {
   loginUserWithProvider,
   registerUser,
   updateUserOnboarding,
+  getUserById,
+  updateUserProfile,
 } from '@/controllers/user-ctrl';
 
 export const userRoutes = express.Router();
 
 userRoutes.get('/', getAllUsers);
+
+userRoutes.get('/:id', validateRequestParams(profileSchema), getUserById);
+
+userRoutes.patch(
+  '/:id',
+  validateRequestParams(profileSchema),
+  updateUserProfile
+);
 
 userRoutes.get(
   '/:email',

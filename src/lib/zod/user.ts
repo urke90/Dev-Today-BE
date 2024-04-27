@@ -1,3 +1,4 @@
+import { link } from 'fs';
 import z from 'zod';
 
 export const registerSchema = z.object({
@@ -47,4 +48,29 @@ export const paramsIdSchema = z.object({
 
 export const paramsEmailSchema = z.object({
   email: z.string().trim().email(),
+});
+
+export const profileSchema = z.object({
+  id: z.string(),
+  userName: z.string().optional(),
+  name: z.string().optional().optional(),
+  email: z
+    .string({ required_error: 'Email is required!' })
+    .trim()
+    .email('Please provide valid email address!')
+    .optional(),
+  preferredSkills: z.array(z.string()).optional(),
+  contents: z.array(z.string()).optional(),
+  likedContents: z.array(z.string()).optional(),
+  bio: z.string().optional(),
+  avatarImg: z.string().optional(),
+  createdAt: z.date().optional(),
+  instagramName: z.string().optional(),
+  instagramLink: z.string().optional(),
+  linkedinName: z.string().optional(),
+  linkedinLink: z.string().optional(),
+  twitterName: z.string().optional(),
+  twitterLink: z.string().optional(),
+  followers: z.number().optional(),
+  following: z.number().optional(),
 });

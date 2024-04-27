@@ -23,3 +23,24 @@ export const validateUserReqBody =
 
     next();
   };
+
+export const validateUserReqParams =
+  (schema: z.ZodObject<any>) =>
+  (req: Request, res: Response, next: NextFunction) => {
+    const paramsValidation = schema.safeParse(req.params);
+
+    if (
+      !paramsValidation.success &&
+      paramsValidation.error instanceof z.ZodError
+    ) {
+      const validationError = paramsValidation.error.errors.map((error) => ({
+        type: 'manual',
+        name: error.path[0],
+        message: error.message,
+      }));
+
+      return res.status(400).json(validationError);
+    }
+
+    next();
+  };

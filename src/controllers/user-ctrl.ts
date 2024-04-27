@@ -13,6 +13,7 @@ import {
   paramsIdSchema,
   onboardingSchema,
   paramsEmailSchema,
+  profileSchema,
 } from '@/lib/zod/user';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { excludeField, excludeProperty } from '@/utils/prisma-functions';
@@ -191,5 +192,68 @@ export const updateUserOnboarding = async (
     res.status(500).json({
       message: 'Oops! An internal server error occurred on our end.',
     });
+  }
+};
+
+export const getUserById = async (
+  req: TypedRequestParams<typeof profileSchema>,
+  res: Response
+) => {
+  const id = req.params.id;
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id },
+    });
+    if (!user) return res.status(404).json({ message: 'User not found!' });
+
+    res.status(200).json({ user });
+  } catch (error) {
+    console.log('Error fetching user by id', error);
+    res
+      .status(500)
+      .json({ message: 'Oops! An internal server error occurred on our end.' });
+  }
+};
+
+export const updateUserProfile = async (
+  req: TypedRequestParams<typeof profileSchema>,
+  res: Response
+) => {
+  const id = req.params.id;
+  const {
+    userName,
+    bio,
+    preferredSkills,
+    avatarImg,
+    linkedinName,
+    linkedinLink,
+    twitterName,
+    twitterLink,
+    instagramName,
+    instagramLink,
+  } = req.body;
+
+  try {
+    await prisma.user.update({
+      where: { id },
+      data: {
+        avatarImg: avatarImg,
+        userName: userName,
+        bio: bio,
+        preferredSkills: preferredSkills,
+        linkedinName: linkedinName,
+        linkedinLink: linkedinLink,
+        twitterName: twitterName,
+        twitterLink: twitterLink,
+        instagramName: instagramName,
+        instagramLink: instagramLink,
+      },
+    });
+    res.status(200).json({ message: 'User profile updated!' });
+  } catch (error) {
+    console.log('Error updating user profile', error);
+    res
+      .status(500)
+      .json({ message: 'Oops! An internal server error occurred on our end.' });
   }
 };
