@@ -37,6 +37,12 @@ model User {
   twitterLink           String?
   followers             Followers[] @relation("follower")
   following             Followers[] @relation("following")
+  comments             Comment[]
+  likedComments        Comment[] @relation("CommentLikes")
+  groups               Group[]
+  adminGroups          Admin[]
+  memberGroups         Member[]
+  role                  Role        @default(USER)
 }
 
 model Followers {
@@ -60,10 +66,74 @@ model Content {
   author    User         @relation(fields: [authorId], references: [id])
   authorId  String
   likedBy   User[]       @relation("ContentLikes")
+  title     String?
+  contentDesrition   String?
+  postGroups String[]
+  coverImage     String?
+  meetUpLocationImage    String?
+  meetUpDate     DateTime?
+  podcastAudioFile   String?
+  podcastAudiTitle   String?
+  storyTags String[]
+  comments Comment[]
+  contentGroups ContentGroup[]
 }
 
 enum EContentType {
   POST
   MEETUP
   PODCAST
+}
+
+model  Comment {
+id       String   @id @default(uuid())
+commentText  String
+createdAt DateTime @default(now())
+updatedAt DateTime? @updatedAt
+author User @relation(fields: [authorId], references: [id])
+authorId String
+contentId String
+content Content @relation(fields: [contentId], references: [id])
+likes User[] @relation("CommentLikes")
+}
+
+model Group {
+  id        String   @id @default(uuid())
+  name      String
+  coverImg  String?
+  groupBio  String?
+  admins  Admin[]
+  members  Member[]
+  users    User[]
+  contentGroups ContentGroup[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+}
+ 
+ model ContentGroup {
+  contentId String
+  content Content @relation(fields: [contentId], references: [id])
+  groupId String
+  group Group @relation(fields: [groupId], references: [id])
+  @@id([contentId, groupId])
+}
+model Admin {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  group     Group    @relation(fields: [groupId], references: [id])
+  groupId   String
+}
+
+model Member {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  group     Group    @relation(fields: [groupId], references: [id])
+  groupId   String
+}
+
+enum Role {
+  USER
+  ADMIN
 }
