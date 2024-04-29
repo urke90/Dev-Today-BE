@@ -43,7 +43,7 @@ export const onboardingSchema = z.object({
 });
 
 export const paramsIdSchema = z.object({
-  id: z.string().trim().min(1),
+  id: z.string().trim().length(36),
 });
 
 export const paramsEmailSchema = z.object({
@@ -51,7 +51,6 @@ export const paramsEmailSchema = z.object({
 });
 
 export const profileSchema = z.object({
-  id: z.string(),
   userName: z.string().optional(),
   name: z.string().optional().optional(),
   email: z

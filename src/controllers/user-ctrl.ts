@@ -196,7 +196,7 @@ export const updateUserOnboarding = async (
 };
 
 export const getUserById = async (
-  req: TypedRequestParams<typeof profileSchema>,
+  req: TypedRequestParams<typeof paramsIdSchema>,
   res: Response
 ) => {
   const id = req.params.id;
@@ -216,7 +216,7 @@ export const getUserById = async (
 };
 
 export const updateUserProfile = async (
-  req: TypedRequestParams<typeof profileSchema>,
+  req: TypedRequest<typeof paramsIdSchema, any, typeof profileSchema>,
   res: Response
 ) => {
   const id = req.params.id;
@@ -232,6 +232,8 @@ export const updateUserProfile = async (
     instagramName,
     instagramLink,
   } = req.body;
+
+  console.log(userName);
 
   try {
     await prisma.user.update({
