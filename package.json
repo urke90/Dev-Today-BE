@@ -2,13 +2,14 @@
   "name": "social-media-app",
   "version": "1.0.0",
   "description": "Social media BE application built with Node and Express",
-  "main": "index.ts",
+  "main": "app.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node dist/index.js",
-    "dev": "nodemon src/index.ts",
+    "start": "nodemon -r tsconfig-paths/register dist/index.js",
+    "dev": "nodemon",
     "lint": "eslint src/**/*.ts",
-    "format": "eslint src/**/*.ts --fix"
+    "format": "eslint src/**/*.ts --fix",
+    "prismaTest": "nodemon src/prisma-client.ts"
   },
   "repository": {
     "type": "git",
@@ -22,14 +23,23 @@
   "homepage": "https://github.com/urke90/Social-app-FE#readme",
   "dependencies": {
     "-": "^0.0.1",
+    "@prisma/client": "^5.12.1",
+    "@vercel/postgres": "^0.8.0",
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "prettier": "^3.2.5",
-    "save-dev": "^0.0.1-security"
+    "prisma": "^5.12.1",
+    "save-dev": "^0.0.1-security",
+    "zod-express-middleware": "^1.4.0",
+    "zod-validation-error": "^3.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.0.2",
     "@eslint/js": "^9.0.0",
+    "@types/bcrypt": "^5.0.2",
+    "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/node": "^20.12.7",
     "@typescript-eslint/eslint-plugin": "^7.7.0",
@@ -42,6 +52,7 @@
     "globals": "^15.0.0",
     "nodemon": "^3.1.0",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.4.5",
     "typescript-eslint": "^7.7.0"
   }
