@@ -20,6 +20,7 @@ import {
   updateUserOnboarding,
   getUserById,
   updateUserProfile,
+  getUserContent,
 } from '@/controllers/user-ctrl';
 
 export const userRoutes = express.Router();
@@ -27,7 +28,12 @@ export const userRoutes = express.Router();
 userRoutes.get('/', getAllUsers);
 
 userRoutes.get('/:id', validateUserReqParams(paramsIdSchema), getUserById);
-// userRoutes.get('/:id/content', validateUserReqParams(paramsIdSchema), getUserById);
+
+userRoutes.get(
+  '/:id/content',
+  validateUserReqParams(paramsIdSchema),
+  getUserContent
+);
 
 userRoutes.patch(
   '/:id',

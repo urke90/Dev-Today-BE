@@ -14,6 +14,7 @@ import {
   onboardingSchema,
   paramsEmailSchema,
   profileSchema,
+  contentSchema,
 } from '@/lib/zod/user';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { excludeField, excludeProperty } from '@/utils/prisma-functions';
@@ -218,6 +219,13 @@ export const getUserById = async (
       .status(500)
       .json({ message: 'Oops! An internal server error occurred on our end.' });
   }
+};
+
+export const getUserContent = async (
+  req: TypedRequest<typeof paramsIdSchema, any, typeof contentSchema>,
+  res: Response
+) => {
+  const id = req.params.id;
 };
 
 export const updateUserProfile = async (

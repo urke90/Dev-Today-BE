@@ -73,3 +73,11 @@ export const profileSchema = z.object({
   followers: z.number().optional(),
   following: z.number().optional(),
 });
+
+export const contentSchema = z.object({
+  title: z.string(),
+  contentDescription: z.string(),
+  storyTags: z.array(z.string()),
+  coverImage: z.string(),
+  type: z.enum(['POST', 'MEETUPS', 'PODCAST', 'GROUPS']),
+});
