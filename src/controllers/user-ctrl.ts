@@ -204,9 +204,14 @@ export const getUserById = async (
     const user = await prisma.user.findUnique({
       where: { id },
     });
+
     if (!user) return res.status(404).json({ message: 'User not found!' });
 
-    res.status(200).json({ user });
+    const latestContent = await prisma.content.findMany({ take: 3 });
+    if (!latestContent)
+      return res.status(404).json({ message: 'No content found!' });
+
+    res.status(200).json({ user, latestContent });
   } catch (error) {
     console.log('Error fetching user by id', error);
     res

@@ -20,7 +20,6 @@ export const validateUserReqBody =
 
       return res.status(400).json(validationError);
     }
-
     next();
   };
 
