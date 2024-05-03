@@ -208,7 +208,12 @@ export const getUserById = async (
 
     if (!user) return res.status(404).json({ message: 'User not found!' });
 
-    const latestContent = await prisma.content.findMany({ take: 3 });
+    const latestContent = await prisma.content.groupBy({
+      by: ['createdAt'],
+      where: { authorId: id },
+      orderBy: { createdAt: 'desc' },
+      take: 3,
+    });
     if (!latestContent)
       return res.status(404).json({ message: 'No content found!' });
 
