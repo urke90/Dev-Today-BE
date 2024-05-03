@@ -43,3 +43,24 @@ export const validateUserReqParams =
 
     next();
   };
+
+export const validateUserReqQuery =
+  (schema: z.ZodObject<any>) =>
+  (req: Request, res: Response, next: NextFunction) => {
+    const queryValidation = schema.safeParse(req.query);
+
+    if (
+      !queryValidation.success &&
+      queryValidation.error instanceof z.ZodError
+    ) {
+      const validationError = queryValidation.error.errors.map((error) => ({
+        type: 'manual',
+        name: error.path[0],
+        message: error.message,
+      }));
+
+      return res.status(400).json(validationError);
+    }
+
+    next();
+  };

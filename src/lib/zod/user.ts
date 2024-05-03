@@ -75,9 +75,15 @@ export const profileSchema = z.object({
 });
 
 export const contentSchema = z.object({
-  title: z.string(),
-  contentDescription: z.string(),
-  storyTags: z.array(z.string()),
-  coverImage: z.string(),
-  type: z.enum(['POST', 'MEETUPS', 'PODCAST', 'GROUPS']),
+  contentId: z.string(),
+  authorId: z.string().optional(),
+  title: z.string().optional(),
+  contentDescription: z.string().optional(),
+  storyTags: z.array(z.string()).optional(),
+  coverImage: z.string().optional(),
+});
+
+export const typeSchema = z.object({
+  type: z.enum(['POSTS', 'MEETUP', 'PODCAST', 'GROUPS']).optional(),
+  page: z.coerce.number().default(1).optional(),
 });

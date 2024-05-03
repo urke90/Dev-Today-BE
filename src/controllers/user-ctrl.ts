@@ -15,6 +15,7 @@ import {
   paramsEmailSchema,
   profileSchema,
   contentSchema,
+  typeSchema,
 } from '@/lib/zod/user';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { excludeField, excludeProperty } from '@/utils/prisma-functions';
@@ -196,6 +197,52 @@ export const updateUserOnboarding = async (
   }
 };
 
+export const createLike = async (
+  req: TypedRequest<typeof paramsIdSchema, any, typeof contentSchema>,
+  res: Response
+) => {
+  const id = req.params.id;
+  const { contentId } = req.body;
+  try {
+    const existingLike = await prisma.like.findUnique({
+      where: { userId_contentId: { userId: id, contentId } },
+    });
+    if (existingLike) {
+      await prisma.like.delete({
+        where: { userId_contentId: { userId: id, contentId } },
+      });
+      await prisma.content.update({
+        where: { id: contentId },
+        data: {
+          likesCount: {
+            decrement: 1,
+          },
+        },
+      });
+    } else {
+      await prisma.like.create({
+        data: {
+          userId: id,
+          contentId,
+        },
+      });
+      await prisma.content.update({
+        where: { id: contentId },
+        data: {
+          likesCount: {
+            increment: 1,
+          },
+        },
+      });
+    }
+    res.status(200).json({ message: 'Like created!' });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Oops! An internal server error occurred on our end.',
+    });
+  }
+};
+
 export const getUserById = async (
   req: TypedRequestParams<typeof paramsIdSchema>,
   res: Response
@@ -214,8 +261,6 @@ export const getUserById = async (
       orderBy: { createdAt: 'desc' },
       take: 3,
     });
-    if (!latestContent)
-      return res.status(404).json({ message: 'No content found!' });
 
     res.status(200).json({ user, latestContent });
   } catch (error) {
@@ -227,10 +272,35 @@ export const getUserById = async (
 };
 
 export const getUserContent = async (
-  req: TypedRequest<typeof paramsIdSchema, any, typeof contentSchema>,
+  req: TypedRequest<
+    typeof paramsIdSchema,
+    typeof typeSchema,
+    typeof contentSchema
+  >,
   res: Response
 ) => {
   const id = req.params.id;
+  const { type, page } = req.query;
+
+  try {
+    const content = await prisma.content.findMany({
+      where: {
+        authorId: id,
+        type: type ? type : 'POSTS',
+      },
+      skip: page ? (page - 1) * 1 : 0,
+      take: 1,
+    });
+
+    if (!content) return res.status(404).json({ message: 'No content found!' });
+
+    res.status(200).json({ content });
+  } catch (error) {
+    console.log('Error fetching user content', error);
+    res
+      .status(500)
+      .json({ message: 'Oops! An internal server error occurred on our end.' });
+  }
 };
 
 export const updateUserProfile = async (

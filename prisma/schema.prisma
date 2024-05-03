@@ -26,6 +26,7 @@ model User {
   preferredSkills       String[]
   contents              Content[]
   likedContents         Content[]   @relation("ContentLikes")
+  likes                 Like[]
   bio                   String?
   avatarImg             String?
   createdAt             DateTime    @default(now())
@@ -60,12 +61,13 @@ model Followers {
 
 model Content {
   id        String       @id @default(uuid())
-  type      EContentType
+  type      EContentType?
   createdAt DateTime     @default(now())
   updatedAt DateTime?    @updatedAt
   author    User         @relation(fields: [authorId], references: [id])
   authorId  String
   likedBy   User[]       @relation("ContentLikes")
+  likes     Like[]
   title     String?
   contentDesrition   String?
   postGroups String[]
@@ -77,12 +79,24 @@ model Content {
   storyTags String[]
   comments Comment[]
   contentGroups ContentGroup[]
+  viewsCount Int? @default(0)
+  likesCount Int? @default(0)
+  commentsCount Int? @default(0)
+}
+model Like  {
+  user User @relation(fields: [userId], references: [id])
+  userId String
+  content Content @relation(fields: [contentId], references: [id])
+  contentId String
+ 
+  @@id([userId, contentId])
 }
 
 enum EContentType {
-  POST
+  POSTS
   MEETUP
   PODCAST
+  GROUPS
 }
 
 model  Comment {

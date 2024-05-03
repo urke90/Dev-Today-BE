@@ -1,6 +1,9 @@
 import express from 'express';
 // import { validateRequestParams } from 'zod-express-middleware';
-import { validateUserReqParams } from '@/utils/middlewares';
+import {
+  validateUserReqParams,
+  validateUserReqQuery,
+} from '@/utils/middlewares';
 import { validateUserReqBody } from '@/utils/middlewares';
 import {
   loginSchema,
@@ -10,6 +13,8 @@ import {
   paramsEmailSchema,
   profileSchema,
   paramsIdSchema,
+  typeSchema,
+  contentSchema,
 } from '@/lib/zod/user';
 import {
   getAllUsers,
@@ -21,6 +26,7 @@ import {
   getUserById,
   updateUserProfile,
   getUserContent,
+  createLike,
 } from '@/controllers/user-ctrl';
 
 export const userRoutes = express.Router();
@@ -32,7 +38,15 @@ userRoutes.get('/:id', validateUserReqParams(paramsIdSchema), getUserById);
 userRoutes.get(
   '/:id/content',
   validateUserReqParams(paramsIdSchema),
+  validateUserReqQuery(typeSchema),
   getUserContent
+);
+
+userRoutes.post(
+  '/:id/like',
+  validateUserReqParams(paramsIdSchema),
+  validateUserReqBody(contentSchema),
+  createLike
 );
 
 userRoutes.patch(
