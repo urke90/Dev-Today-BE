@@ -254,22 +254,10 @@ export const followUser = async (
       where: { followerId: id },
     });
 
-    const mutualFollow = await prisma.followers.findMany({
-      where: {
-        OR: [
-          { followerId: userId, followingId: id },
-          { followerId: id, followingId: userId },
-        ],
-      },
-    });
-
-    const doTheyFollowEachOther = mutualFollow.length === 2;
-
     res.status(200).json({
       message: 'User followed!',
       followersCount,
       followingCount,
-      doTheyFollowEachOther,
     });
   } catch (error) {
     console.log('Error following user', error);
@@ -330,10 +318,11 @@ export const createLike = async (
 };
 
 export const getUserById = async (
-  req: TypedRequestParams<typeof paramsIdSchema>,
+  req: TypedRequest<typeof paramsIdSchema, any, typeof profileSchema>,
   res: Response
 ) => {
   const id = req.params.id;
+  const userId = req.body.userId;
   try {
     const user = await prisma.user.findUnique({
       where: { id },
@@ -352,7 +341,18 @@ export const getUserById = async (
       take: 3,
     });
 
-    res.status(200).json({ user, latestContent });
+    const mutualFollow = await prisma.followers.findMany({
+      where: {
+        OR: [
+          { followerId: userId, followingId: id },
+          { followerId: id, followingId: userId },
+        ],
+      },
+    });
+
+    const doTheyFollowEachOther = mutualFollow.length === 2;
+
+    res.status(200).json({ user, latestContent, doTheyFollowEachOther });
   } catch (error) {
     console.log('Error fetching user by id', error);
     res

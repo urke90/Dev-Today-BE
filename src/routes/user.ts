@@ -35,7 +35,12 @@ export const userRoutes = express.Router();
 
 userRoutes.get('/', getAllUsers);
 
-userRoutes.get('/:id', validateUserReqParams(paramsIdSchema), getUserById);
+userRoutes.get(
+  '/:id',
+  validateUserReqParams(paramsIdSchema),
+  validateUserReqBody(profileSchema),
+  getUserById
+);
 
 userRoutes.get(
   '/:id/content',
