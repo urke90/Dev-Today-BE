@@ -51,6 +51,7 @@ export const paramsEmailSchema = z.object({
 });
 
 export const profileSchema = z.object({
+  userId: z.string().optional(),
   userName: z.string().optional(),
   name: z.string().optional().optional(),
   email: z

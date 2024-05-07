@@ -123,6 +123,26 @@ export const loginUser = async (
   }
 };
 
+export const deleteUser = async (
+  req: TypedRequestParams<typeof paramsIdSchema>,
+  res: Response
+) => {
+  const id = req.params.id;
+
+  try {
+    await prisma.user.delete({
+      where: { id },
+    });
+
+    res.status(200).json({ message: 'User deleted!' });
+  } catch (error) {
+    console.log('Error deleting user!', error);
+    res.status(500).json({
+      message: 'Oops! An internal server error occurred on our end.',
+    });
+  }
+};
+
 export const loginUserWithProvider = async (
   req: TypedRequestBody<typeof loginProviderSchema>,
   res: Response
@@ -197,6 +217,68 @@ export const updateUserOnboarding = async (
   }
 };
 
+export const followUser = async (
+  req: TypedRequest<typeof paramsIdSchema, any, typeof profileSchema>,
+  res: Response
+) => {
+  const { id } = req.params;
+  const { userId } = req.body;
+
+  try {
+    if (userId) {
+      const existingFollow = await prisma.followers.findUnique({
+        where: {
+          followerId_followingId: { followerId: userId, followingId: id },
+        },
+      });
+      if (existingFollow) {
+        await prisma.followers.delete({
+          where: {
+            followerId_followingId: { followerId: userId, followingId: id },
+          },
+        });
+      } else {
+        await prisma.followers.create({
+          data: {
+            followerId: userId,
+            followingId: id,
+          },
+        });
+      }
+    }
+
+    const followersCount = await prisma.followers.count({
+      where: { followingId: id },
+    });
+    const followingCount = await prisma.followers.count({
+      where: { followerId: id },
+    });
+
+    const mutualFollow = await prisma.followers.findMany({
+      where: {
+        OR: [
+          { followerId: userId, followingId: id },
+          { followerId: id, followingId: userId },
+        ],
+      },
+    });
+
+    const doTheyFollowEachOther = mutualFollow.length === 2;
+
+    res.status(200).json({
+      message: 'User followed!',
+      followersCount,
+      followingCount,
+      doTheyFollowEachOther,
+    });
+  } catch (error) {
+    console.log('Error following user', error);
+    res.status(500).json({
+      message: 'Oops! An internal server error occurred on our end.',
+    });
+  }
+};
+
 export const createLike = async (
   req: TypedRequest<typeof paramsIdSchema, any, typeof contentSchema>,
   res: Response
@@ -208,32 +290,36 @@ export const createLike = async (
       where: { userId_contentId: { userId: id, contentId } },
     });
     if (existingLike) {
-      await prisma.like.delete({
-        where: { userId_contentId: { userId: id, contentId } },
-      });
-      await prisma.content.update({
-        where: { id: contentId },
-        data: {
-          likesCount: {
-            decrement: 1,
+      await prisma.$transaction([
+        prisma.like.delete({
+          where: { userId_contentId: { userId: id, contentId } },
+        }),
+        prisma.content.update({
+          where: { id: contentId },
+          data: {
+            likesCount: {
+              decrement: 1,
+            },
           },
-        },
-      });
+        }),
+      ]);
     } else {
-      await prisma.like.create({
-        data: {
-          userId: id,
-          contentId,
-        },
-      });
-      await prisma.content.update({
-        where: { id: contentId },
-        data: {
-          likesCount: {
-            increment: 1,
+      await prisma.$transaction([
+        prisma.like.create({
+          data: {
+            userId: id,
+            contentId,
           },
-        },
-      });
+        }),
+        prisma.content.update({
+          where: { id: contentId },
+          data: {
+            likesCount: {
+              increment: 1,
+            },
+          },
+        }),
+      ]);
     }
     res.status(200).json({ message: 'Like created!' });
   } catch (error) {
@@ -251,6 +337,10 @@ export const getUserById = async (
   try {
     const user = await prisma.user.findUnique({
       where: { id },
+      include: {
+        followers: true,
+        following: true,
+      },
     });
 
     if (!user) return res.status(404).json({ message: 'User not found!' });

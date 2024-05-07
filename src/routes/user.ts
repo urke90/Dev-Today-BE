@@ -27,6 +27,8 @@ import {
   updateUserProfile,
   getUserContent,
   createLike,
+  deleteUser,
+  followUser,
 } from '@/controllers/user-ctrl';
 
 export const userRoutes = express.Router();
@@ -49,6 +51,13 @@ userRoutes.post(
   createLike
 );
 
+userRoutes.post(
+  '/:id/follow',
+  validateUserReqBody(paramsIdSchema),
+  validateUserReqBody(profileSchema),
+  followUser
+);
+
 userRoutes.patch(
   '/:id',
   validateUserReqParams(paramsIdSchema),
@@ -63,6 +72,8 @@ userRoutes.get(
 );
 
 userRoutes.post('/register', validateUserReqBody(registerSchema), registerUser);
+
+userRoutes.delete('/:id', validateUserReqParams(paramsIdSchema), deleteUser);
 
 userRoutes.post('/login', validateUserReqBody(loginSchema), loginUser);
 
