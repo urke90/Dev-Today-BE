@@ -341,18 +341,14 @@ export const getUserById = async (
       take: 3,
     });
 
-    const mutualFollow = await prisma.followers.findMany({
-      where: {
-        OR: [
-          { followerId: userId, followingId: id },
-          { followerId: id, followingId: userId },
-        ],
-      },
+    let isFollowing = false;
+    user.followers.forEach((follower) => {
+      if (follower.followingId === userId) {
+        isFollowing = true;
+      }
     });
 
-    const doTheyFollowEachOther = mutualFollow.length === 2;
-
-    res.status(200).json({ user, latestContent, doTheyFollowEachOther });
+    res.status(200).json({ user, latestContent, isFollowing });
   } catch (error) {
     console.log('Error fetching user by id', error);
     res
@@ -378,8 +374,8 @@ export const getUserContent = async (
         authorId: id,
         type: type ? type : 'POSTS',
       },
-      skip: page ? (page - 1) * 1 : 0,
-      take: 1,
+      skip: page ? (page - 1) * 6 : 0,
+      take: 6,
     });
 
     if (!content) return res.status(404).json({ message: 'No content found!' });
