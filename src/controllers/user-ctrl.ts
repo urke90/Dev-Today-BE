@@ -16,6 +16,7 @@ import {
   profileSchema,
   contentSchema,
   typeSchema,
+  groupSchema,
 } from '@/lib/zod/user';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { excludeField, excludeProperty } from '@/utils/prisma-functions';
@@ -383,6 +384,48 @@ export const getUserContent = async (
     res.status(200).json({ content });
   } catch (error) {
     console.log('Error fetching user content', error);
+    res
+      .status(500)
+      .json({ message: 'Oops! An internal server error occurred on our end.' });
+  }
+};
+export const getUserGroups = async (
+  req: TypedRequest<
+    typeof paramsIdSchema,
+    typeof groupSchema,
+    typeof contentSchema
+  >,
+  res: Response
+) => {
+  const id = req.params.id;
+  const { type, page } = req.query;
+
+  try {
+    const groupContent = await prisma.group.findMany({
+      where: {
+        type: type,
+        users: {
+          some: {
+            id: id,
+          },
+        },
+      },
+      skip: page ? (page - 1) * 6 : 0,
+      take: 6,
+      include: {
+        members: {
+          take: 4,
+        },
+      },
+    });
+    const totalGroupMembers = groupContent.reduce(
+      (acc, group) => acc + group.members.length,
+      0
+    );
+
+    res.status(200).json({ groupContent, totalGroupMembers });
+  } catch (error) {
+    console.log('Error fetching user group content', error);
     res
       .status(500)
       .json({ message: 'Oops! An internal server error occurred on our end.' });

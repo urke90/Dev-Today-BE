@@ -113,6 +113,7 @@ likes User[] @relation("CommentLikes")
 
 model Group {
   id        String   @id @default(uuid())
+  type      EContentType?
   name      String
   coverImg  String?
   groupBio  String?

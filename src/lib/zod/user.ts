@@ -91,6 +91,10 @@ export const contentSchema = z.object({
 });
 
 export const typeSchema = z.object({
-  type: z.enum(['POSTS', 'MEETUP', 'PODCAST', 'GROUPS']).optional(),
+  type: z.enum(['POSTS', 'MEETUP', 'PODCAST']).optional(),
+  page: z.coerce.number().default(1).optional(),
+});
+export const groupSchema = z.object({
+  type: z.enum(['GROUPS']).default('GROUPS').optional(),
   page: z.coerce.number().default(1).optional(),
 });

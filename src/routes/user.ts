@@ -15,6 +15,7 @@ import {
   paramsIdSchema,
   typeSchema,
   contentSchema,
+  groupSchema,
 } from '@/lib/zod/user';
 import {
   getAllUsers,
@@ -29,6 +30,7 @@ import {
   createLike,
   deleteUser,
   followUser,
+  getUserGroups,
 } from '@/controllers/user-ctrl';
 
 export const userRoutes = express.Router();
@@ -54,6 +56,13 @@ userRoutes.post(
   validateUserReqParams(paramsIdSchema),
   validateUserReqBody(contentSchema),
   createLike
+);
+
+userRoutes.get(
+  '/:id/groups',
+  validateUserReqParams(paramsIdSchema),
+  validateUserReqQuery(groupSchema),
+  getUserGroups
 );
 
 userRoutes.post(
