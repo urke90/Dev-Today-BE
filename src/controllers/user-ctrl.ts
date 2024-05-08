@@ -372,7 +372,7 @@ export const getUserContent = async (
     const content = await prisma.content.findMany({
       where: {
         authorId: id,
-        type: type ? type : 'POSTS',
+        type: type,
       },
       skip: page ? (page - 1) * 6 : 0,
       take: 6,
@@ -406,8 +406,6 @@ export const updateUserProfile = async (
     instagramName,
     instagramLink,
   } = req.body;
-
-  console.log(userName);
 
   try {
     await prisma.user.update({

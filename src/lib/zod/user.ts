@@ -51,7 +51,7 @@ export const paramsEmailSchema = z.object({
 });
 
 export const profileSchema = z.object({
-  userId: z.string().optional(),
+  userId: z.string(),
   userName: z.string().optional(),
   name: z.string().optional().optional(),
   email: z
@@ -82,6 +82,12 @@ export const contentSchema = z.object({
   contentDescription: z.string().optional(),
   storyTags: z.array(z.string()).optional(),
   coverImage: z.string().optional(),
+  viewsCount: z.number().optional(),
+  likesCount: z.number().optional(),
+  commentsCount: z.number().optional(),
+  createdAt: z.date().optional(),
+  podcastAudioFile: z.string().optional(),
+  podcastAudioTitle: z.string().optional(),
 });
 
 export const typeSchema = z.object({
