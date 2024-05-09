@@ -16,7 +16,7 @@ import {
   profileSchema,
   contentSchema,
   typeSchema,
-  groupSchema,
+  getUserGroupSchema,
 } from '@/lib/zod/user';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { excludeField, excludeProperty } from '@/utils/prisma-functions';
@@ -392,38 +392,54 @@ export const getUserContent = async (
 export const getUserGroups = async (
   req: TypedRequest<
     typeof paramsIdSchema,
-    typeof groupSchema,
+    typeof getUserGroupSchema,
     typeof contentSchema
   >,
   res: Response
 ) => {
   const id = req.params.id;
-  const { type, page } = req.query;
+  const { page } = req.query;
 
   try {
-    const groupContent = await prisma.group.findMany({
+    let groupContent: any = await prisma.member.findMany({
       where: {
-        type: type,
-        users: {
-          some: {
-            id: id,
+        userId: id,
+      },
+      include: {
+        group: {
+          include: {
+            _count: {
+              select: {
+                members: true,
+              },
+            },
+            members: {
+              take: 4,
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    avatarImg: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
       skip: page ? (page - 1) * 6 : 0,
       take: 6,
-      include: {
-        members: {
-          take: 4,
-        },
-      },
     });
-    const totalGroupMembers = groupContent.reduce(
-      (acc, group) => acc + group.members.length,
-      0
-    );
 
-    res.status(200).json({ groupContent, totalGroupMembers });
+    if (groupContent) {
+      groupContent = groupContent.map((groupMember: any) => groupMember.group);
+      groupContent = groupContent.map((group: any) => ({
+        ...group,
+        members: group.members.map((member: any) => member.user),
+      }));
+    }
+
+    res.status(200).json(groupContent);
   } catch (error) {
     console.log('Error fetching user group content', error);
     res

@@ -15,7 +15,7 @@ import {
   paramsIdSchema,
   typeSchema,
   contentSchema,
-  groupSchema,
+  getUserGroupSchema,
 } from '@/lib/zod/user';
 import {
   getAllUsers,
@@ -61,7 +61,7 @@ userRoutes.post(
 userRoutes.get(
   '/:id/groups',
   validateUserReqParams(paramsIdSchema),
-  validateUserReqQuery(groupSchema),
+  validateUserReqQuery(getUserGroupSchema),
   getUserGroups
 );
 
