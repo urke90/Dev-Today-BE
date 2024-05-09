@@ -20,7 +20,7 @@ import {
 } from '@/lib/zod/user';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { excludeField, excludeProperty } from '@/utils/prisma-functions';
-import { get } from 'http';
+import { Group, GroupContent, GroupMember } from '@/types/content';
 
 // ----------------------------------------------------------------
 
@@ -433,10 +433,12 @@ export const getUserGroups = async (
     });
 
     if (groupContent) {
-      groupContent = groupContent.map((groupMember: any) => groupMember.group);
-      groupContent = groupContent.map((group: any) => ({
+      groupContent = groupContent.map(
+        (groupMember: GroupContent) => groupMember.group
+      );
+      groupContent = groupContent.map((group: Group) => ({
         ...group,
-        members: group.members.map((member: any) => member.user),
+        members: group.members.map((member: GroupMember) => member.user),
       }));
     }
 
