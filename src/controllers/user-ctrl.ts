@@ -14,12 +14,13 @@ import {
   onboardingSchema,
   paramsEmailSchema,
   profileSchema,
-  contentSchema,
-  typeSchema,
   getUserGroupSchema,
+  getUserContentSchema,
+  getUserContentTypeSchema,
 } from '@/lib/zod/user';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { excludeField, excludeProperty } from '@/utils/prisma-functions';
+import { get } from 'http';
 
 // ----------------------------------------------------------------
 
@@ -269,7 +270,7 @@ export const followUser = async (
 };
 
 export const createLike = async (
-  req: TypedRequest<typeof paramsIdSchema, any, typeof contentSchema>,
+  req: TypedRequest<typeof paramsIdSchema, any, typeof getUserContentSchema>,
   res: Response
 ) => {
   const id = req.params.id;
@@ -361,8 +362,8 @@ export const getUserById = async (
 export const getUserContent = async (
   req: TypedRequest<
     typeof paramsIdSchema,
-    typeof typeSchema,
-    typeof contentSchema
+    typeof getUserContentTypeSchema,
+    typeof getUserContentSchema
   >,
   res: Response
 ) => {
@@ -393,7 +394,7 @@ export const getUserGroups = async (
   req: TypedRequest<
     typeof paramsIdSchema,
     typeof getUserGroupSchema,
-    typeof contentSchema
+    typeof getUserContentSchema
   >,
   res: Response
 ) => {

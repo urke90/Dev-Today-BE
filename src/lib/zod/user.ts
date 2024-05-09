@@ -75,7 +75,7 @@ export const profileSchema = z.object({
   following: z.number().optional(),
 });
 
-export const contentSchema = z.object({
+export const getUserContentSchema = z.object({
   contentId: z.string(),
   authorId: z.string().optional(),
   title: z.string().optional(),
@@ -90,7 +90,7 @@ export const contentSchema = z.object({
   podcastAudioTitle: z.string().optional(),
 });
 
-export const typeSchema = z.object({
+export const getUserContentTypeSchema = z.object({
   type: z.enum(['POSTS', 'MEETUP', 'PODCAST']).optional(),
   page: z.coerce.number().default(1).optional(),
 });
