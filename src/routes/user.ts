@@ -80,7 +80,7 @@ userRoutes.patch(
 );
 
 userRoutes.get(
-  '/:email',
+  '/email/:email',
   validateUserReqParams(paramsEmailSchema),
   getUserByEmail
 );
