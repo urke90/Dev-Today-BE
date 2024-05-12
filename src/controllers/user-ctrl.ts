@@ -344,7 +344,7 @@ export const getUserById = async (
           select: {
             id: true,
             title: true,
-            contentDesrition: true,
+            contentDescription: true,
             coverImage: true,
           },
           orderBy: {

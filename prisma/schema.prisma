@@ -69,7 +69,7 @@ model Content {
   likedBy   User[]       @relation("ContentLikes")
   likes     Like[]
   title     String?
-  contentDesrition   String?
+  contentDescription   String?
   postGroups String[]
   coverImage     String?
   meetUpLocationImage    String?
