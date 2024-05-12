@@ -21,6 +21,7 @@ import {
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { excludeField, excludeProperty } from '@/utils/prisma-functions';
 import { Group, GroupContent, GroupMember } from '@/types/content';
+import { userInfo } from 'os';
 
 // ----------------------------------------------------------------
 
@@ -336,11 +337,22 @@ export const getUserById = async (
 
     if (!user) return res.status(404).json({ message: 'User not found!' });
 
-    const latestContent = await prisma.content.groupBy({
-      by: ['createdAt'],
-      where: { authorId: id },
-      orderBy: { createdAt: 'desc' },
-      take: 3,
+    const latestContent = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        contents: {
+          select: {
+            id: true,
+            title: true,
+            contentDesrition: true,
+            coverImage: true,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+          take: 3,
+        },
+      },
     });
 
     let isFollowing = false;
