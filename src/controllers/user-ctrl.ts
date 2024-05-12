@@ -320,11 +320,11 @@ export const createLike = async (
 };
 
 export const getUserById = async (
-  req: TypedRequest<typeof paramsIdSchema, any, typeof profileSchema>,
+  req: TypedRequest<typeof paramsIdSchema, typeof profileSchema, any>,
   res: Response
 ) => {
   const id = req.params.id;
-  const userId = req.body.userId;
+  const userId = req.query.userId;
   try {
     const user = await prisma.user.findUnique({
       where: { id },

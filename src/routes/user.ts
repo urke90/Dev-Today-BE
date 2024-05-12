@@ -40,7 +40,7 @@ userRoutes.get('/', getAllUsers);
 userRoutes.get(
   '/:id',
   validateUserReqParams(paramsIdSchema),
-  validateUserReqBody(profileSchema),
+  validateUserReqQuery(profileSchema),
   getUserById
 );
 
