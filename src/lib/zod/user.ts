@@ -91,7 +91,7 @@ export const getUserContentSchema = z.object({
 });
 
 export const getUserContentTypeSchema = z.object({
-  type: z.enum(['POSTS', 'MEETUP', 'PODCAST']).optional(),
+  type: z.enum(['posts', 'meetups', 'podcasts']).optional(),
   page: z.coerce.number().default(1).optional(),
 });
 

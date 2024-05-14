@@ -332,14 +332,6 @@ export const getUserById = async (
       include: {
         followers: true,
         following: true,
-      },
-    });
-
-    if (!user) return res.status(404).json({ message: 'User not found!' });
-
-    const latestContent = await prisma.user.findUnique({
-      where: { id },
-      select: {
         contents: {
           select: {
             id: true,
@@ -355,6 +347,8 @@ export const getUserById = async (
       },
     });
 
+    if (!user) return res.status(404).json({ message: 'User not found!' });
+
     let isFollowing = false;
     user.followers.forEach((follower) => {
       if (follower.followingId === userId) {
@@ -362,7 +356,7 @@ export const getUserById = async (
       }
     });
 
-    res.status(200).json({ user, latestContent, isFollowing });
+    res.status(200).json({ user, isFollowing });
   } catch (error) {
     console.log('Error fetching user by id', error);
     res

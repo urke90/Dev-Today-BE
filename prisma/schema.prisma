@@ -93,10 +93,9 @@ model Like  {
 }
 
 enum EContentType {
-  POSTS
-  MEETUP
-  PODCAST
-  GROUPS
+  posts
+  meetups
+  podcasts
 }
 
 model  Comment {
