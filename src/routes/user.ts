@@ -16,6 +16,7 @@ import {
   getUserContentSchema,
   getUserGroupSchema,
   getUserContentTypeSchema,
+  createLikeSchema,
 } from '@/lib/zod/user';
 import {
   getAllUsers,
@@ -50,11 +51,10 @@ userRoutes.get(
   validateUserReqQuery(getUserContentTypeSchema),
   getUserContent
 );
-
 userRoutes.post(
-  '/:id/like',
+  '/content/:id/like',
   validateUserReqParams(paramsIdSchema),
-  validateUserReqBody(getUserContentSchema),
+  validateUserReqBody(createLikeSchema),
   createLike
 );
 

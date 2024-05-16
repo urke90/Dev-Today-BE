@@ -77,9 +77,9 @@ export const profileSchema = z.object({
 
 export const getUserContentSchema = z.object({
   contentId: z.string(),
-  authorId: z.string().optional(),
-  title: z.string().optional(),
-  contentDescription: z.string().optional(),
+  authorId: z.string(),
+  title: z.string(),
+  contentDescription: z.string(),
   storyTags: z.array(z.string()).optional(),
   coverImage: z.string().optional(),
   viewsCount: z.number().optional(),
@@ -88,6 +88,11 @@ export const getUserContentSchema = z.object({
   createdAt: z.date().optional(),
   podcastAudioFile: z.string().optional(),
   podcastAudioTitle: z.string().optional(),
+});
+
+export const createLikeSchema = z.object({
+  userId: z.string().optional(),
+  contentId: z.string(),
 });
 
 export const getUserContentTypeSchema = z.object({

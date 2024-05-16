@@ -17,6 +17,7 @@ import {
   getUserGroupSchema,
   getUserContentSchema,
   getUserContentTypeSchema,
+  createLikeSchema,
 } from '@/lib/zod/user';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { excludeField, excludeProperty } from '@/utils/prisma-functions';
@@ -271,11 +272,11 @@ export const followUser = async (
 };
 
 export const createLike = async (
-  req: TypedRequest<typeof paramsIdSchema, any, typeof getUserContentSchema>,
+  req: TypedRequest<typeof paramsIdSchema, any, typeof createLikeSchema>,
   res: Response
 ) => {
   const id = req.params.id;
-  const { contentId } = req.body;
+  const { userId, contentId } = req.body;
   try {
     const existingLike = await prisma.like.findUnique({
       where: { userId_contentId: { userId: id, contentId } },
@@ -364,17 +365,18 @@ export const getUserById = async (
       .json({ message: 'Oops! An internal server error occurred on our end.' });
   }
 };
-
+// moram da proverim da li je user  vec lajkovao kontnent
 export const getUserContent = async (
   req: TypedRequest<
     typeof paramsIdSchema,
     typeof getUserContentTypeSchema,
-    typeof getUserContentSchema
+    typeof createLikeSchema
   >,
   res: Response
 ) => {
   const id = req.params.id;
   const { type, page } = req.query;
+  const { userId, contentId } = req.body;
 
   try {
     const content = await prisma.content.findMany({
@@ -387,8 +389,22 @@ export const getUserContent = async (
     });
 
     if (!content) return res.status(404).json({ message: 'No content found!' });
+    const contentWithLikes = await Promise.all(
+      content.map(async (item) => {
+        const like = await prisma.like.findFirst({
+          where: {
+            userId: userId,
+            contentId: item.id,
+          },
+        });
+        return {
+          ...item,
+          likedByUser: like !== null,
+        };
+      })
+    );
 
-    res.status(200).json({ content });
+    res.status(200).json(contentWithLikes);
   } catch (error) {
     console.log('Error fetching user content', error);
     res
@@ -407,54 +423,54 @@ export const getUserGroups = async (
   const id = req.params.id;
   const { page } = req.query;
 
-  // try {
-  //   let groupContent: any = await prisma.member.findMany({
-  //     where: {
-  //       userId: id,
-  //     },
-  //     include: {
-  //       group: {
-  //         include: {
-  //           _count: {
-  //             select: {
-  //               members: true,
-  //             },
-  //           },
-  //           members: {
-  //             take: 4,
-  //             include: {
-  //               user: {
-  //                 select: {
-  //                   id: true,
-  //                   avatarImg: true,
-  //                 },
-  //               },
-  //             },
-  //           },
-  //         },
-  //       },
-  //     },
-  //     skip: page ? (page - 1) * 6 : 0,
-  //     take: 6,
-  //   });
+  try {
+    let groupContent: any = await prisma.groupUser.findMany({
+      where: {
+        userId: id,
+      },
+      include: {
+        group: {
+          include: {
+            _count: {
+              select: {
+                members: true,
+              },
+            },
+            members: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    avatarImg: true,
+                  },
+                },
+              },
+              take: 4,
+            },
+          },
+        },
+      },
+      skip: page ? (page - 1) * 6 : 0,
+      take: 6,
+    });
 
-  //   if (groupContent) {
-  //     groupContent = groupContent.map(
-  //       (groupMember: GroupContent) => groupMember.group
-  //     );
-  //     groupContent = groupContent.map((group: Group) => ({
-  //       ...group,
-  //       members: group.members.map((member: GroupMember) => member.user),
-  //     }));
-  //   }
+    if (groupContent) {
+      groupContent = groupContent.map(
+        (groupMember: GroupContent) => groupMember.group
+      );
+      groupContent = groupContent.map((group: Group) => ({
+        ...group,
+        members: group.members.map((member: GroupMember) => member.user),
+      }));
+    }
 
-  //   res.status(200).json(groupContent);
-  // } catch (error) {
-  //   console.log('Error fetching user group content', error);
-  //   res
-  //     .status(500)
-  //     .json({ message: 'Oops! An internal server error occurred on our end.' });
-  // }
+    res.status(200).json(groupContent);
+  } catch (error) {
+    console.log('Error fetching user group content', error);
+    res
+      .status(500)
+      .json({ message: 'Oops! An internal server error occurred on our end.' });
+  }
 };
 
 export const updateUserProfile = async (

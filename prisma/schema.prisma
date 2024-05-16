@@ -40,8 +40,8 @@ model User {
   following             Followers[] @relation("following")
   comments             Comment[]
   likedComments        Comment[] @relation("CommentLikes")
-  group                Group[]
-  groupUsers            GroupUser[]
+  ownedGroups           Group[]@relation("GroupAuthor")
+  joinGroupUsers        GroupUser[]
   role                  Role        @default(USER)
 }
 
@@ -54,7 +54,8 @@ model Followers {
   @@id([followerId, followingId])
 }
 
-
+//grupa ne sme da bude optional
+// za meetup treba meetap location 
 
 model Content {
   id        String       @id @default(uuid())
@@ -114,19 +115,20 @@ model Group {
   coverImg  String?
   groupBio  String?
   contents Content[]
+  author  User @relation ("GroupAuthor",fields: [authorId], references: [id])
+  authorId String 
   members    GroupUser[]
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
-  user     User[]
 }
-
 model GroupUser{
-  id        String   @id @default(uuid())
   user      User @relation(fields: [userId], references: [id])
-  userId    String
+  userId    String 
   group     Group @relation(fields: [groupId], references: [id])
   groupId   String
   role      Role        @default(USER)
+
+  @@id([userId, groupId])
 }
 
 enum Role {
