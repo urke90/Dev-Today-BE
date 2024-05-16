@@ -407,54 +407,54 @@ export const getUserGroups = async (
   const id = req.params.id;
   const { page } = req.query;
 
-  try {
-    let groupContent: any = await prisma.member.findMany({
-      where: {
-        userId: id,
-      },
-      include: {
-        group: {
-          include: {
-            _count: {
-              select: {
-                members: true,
-              },
-            },
-            members: {
-              take: 4,
-              include: {
-                user: {
-                  select: {
-                    id: true,
-                    avatarImg: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-      skip: page ? (page - 1) * 6 : 0,
-      take: 6,
-    });
+  // try {
+  //   let groupContent: any = await prisma.member.findMany({
+  //     where: {
+  //       userId: id,
+  //     },
+  //     include: {
+  //       group: {
+  //         include: {
+  //           _count: {
+  //             select: {
+  //               members: true,
+  //             },
+  //           },
+  //           members: {
+  //             take: 4,
+  //             include: {
+  //               user: {
+  //                 select: {
+  //                   id: true,
+  //                   avatarImg: true,
+  //                 },
+  //               },
+  //             },
+  //           },
+  //         },
+  //       },
+  //     },
+  //     skip: page ? (page - 1) * 6 : 0,
+  //     take: 6,
+  //   });
 
-    if (groupContent) {
-      groupContent = groupContent.map(
-        (groupMember: GroupContent) => groupMember.group
-      );
-      groupContent = groupContent.map((group: Group) => ({
-        ...group,
-        members: group.members.map((member: GroupMember) => member.user),
-      }));
-    }
+  //   if (groupContent) {
+  //     groupContent = groupContent.map(
+  //       (groupMember: GroupContent) => groupMember.group
+  //     );
+  //     groupContent = groupContent.map((group: Group) => ({
+  //       ...group,
+  //       members: group.members.map((member: GroupMember) => member.user),
+  //     }));
+  //   }
 
-    res.status(200).json(groupContent);
-  } catch (error) {
-    console.log('Error fetching user group content', error);
-    res
-      .status(500)
-      .json({ message: 'Oops! An internal server error occurred on our end.' });
-  }
+  //   res.status(200).json(groupContent);
+  // } catch (error) {
+  //   console.log('Error fetching user group content', error);
+  //   res
+  //     .status(500)
+  //     .json({ message: 'Oops! An internal server error occurred on our end.' });
+  // }
 };
 
 export const updateUserProfile = async (

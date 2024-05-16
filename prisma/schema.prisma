@@ -40,9 +40,8 @@ model User {
   following             Followers[] @relation("following")
   comments             Comment[]
   likedComments        Comment[] @relation("CommentLikes")
-  groups               Group[]
-  adminGroups          Admin[]
-  memberGroups         Member[]
+  group                Group[]
+  groupUsers            GroupUser[]
   role                  Role        @default(USER)
 }
 
@@ -55,9 +54,7 @@ model Followers {
   @@id([followerId, followingId])
 }
 
-// Followers ?
-// Following ?
-// Social Media  ? nova tabela?
+
 
 model Content {
   id        String       @id @default(uuid())
@@ -70,7 +67,6 @@ model Content {
   likes     Like[]
   title     String?
   contentDescription   String?
-  postGroups String[]
   coverImage     String?
   meetUpLocationImage    String?
   meetUpDate     DateTime?
@@ -78,10 +74,12 @@ model Content {
   podcastAudiTitle   String?
   storyTags String[]
   comments Comment[]
-  contentGroups ContentGroup[]
   viewsCount Int? @default(0)
   likesCount Int? @default(0)
   commentsCount Int? @default(0)
+  group Group? @relation(fields: [groupId], references: [id])
+  groupId String?
+  
 }
 model Like  {
   user User @relation(fields: [userId], references: [id])
@@ -112,39 +110,23 @@ likes User[] @relation("CommentLikes")
 
 model Group {
   id        String   @id @default(uuid())
-  type      EContentType?
   name      String
   coverImg  String?
   groupBio  String?
-  admins  Admin[]
-  members  Member[]
-  users    User[]
-  contentGroups ContentGroup[]
+  contents Content[]
+  members    GroupUser[]
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
-}
- 
- model ContentGroup {
-  contentId String
-  content Content @relation(fields: [contentId], references: [id])
-  groupId String
-  group Group @relation(fields: [groupId], references: [id])
-  @@id([contentId, groupId])
-}
-model Admin {
-  id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
-  group     Group    @relation(fields: [groupId], references: [id])
-  groupId   String
+  user     User[]
 }
 
-model Member {
+model GroupUser{
   id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id])
+  user      User @relation(fields: [userId], references: [id])
   userId    String
-  group     Group    @relation(fields: [groupId], references: [id])
+  group     Group @relation(fields: [groupId], references: [id])
   groupId   String
+  role      Role        @default(USER)
 }
 
 enum Role {
