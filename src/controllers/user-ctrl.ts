@@ -276,7 +276,7 @@ export const createLike = async (
   res: Response
 ) => {
   const id = req.params.id;
-  const { userId, contentId } = req.body;
+  const { contentId } = req.body;
   try {
     const existingLike = await prisma.like.findUnique({
       where: { userId_contentId: { userId: id, contentId } },
@@ -295,6 +295,7 @@ export const createLike = async (
           },
         }),
       ]);
+      res.json({ message: 'Like removed!' });
     } else {
       await prisma.$transaction([
         prisma.like.create({
@@ -312,8 +313,8 @@ export const createLike = async (
           },
         }),
       ]);
+      res.json({ message: 'Like has been added.' });
     }
-    res.status(200).json({ message: 'Like created!' });
   } catch (error) {
     res.status(500).json({
       message: 'Oops! An internal server error occurred on our end.',
@@ -365,18 +366,16 @@ export const getUserById = async (
       .json({ message: 'Oops! An internal server error occurred on our end.' });
   }
 };
-// moram da proverim da li je user  vec lajkovao kontnent
 export const getUserContent = async (
   req: TypedRequest<
     typeof paramsIdSchema,
     typeof getUserContentTypeSchema,
-    typeof createLikeSchema
+    any
   >,
   res: Response
 ) => {
   const id = req.params.id;
-  const { type, page } = req.query;
-  const { userId, contentId } = req.body;
+  const { type, page, viewerId } = req.query;
 
   try {
     const content = await prisma.content.findMany({
@@ -384,27 +383,27 @@ export const getUserContent = async (
         authorId: id,
         type: type,
       },
+      include: {
+        likes: {
+          where: {
+            userId: viewerId,
+          },
+        },
+      },
       skip: page ? (page - 1) * 6 : 0,
       take: 6,
     });
 
     if (!content) return res.status(404).json({ message: 'No content found!' });
-    const contentWithLikes = await Promise.all(
-      content.map(async (item) => {
-        const like = await prisma.like.findFirst({
-          where: {
-            userId: userId,
-            contentId: item.id,
-          },
-        });
-        return {
-          ...item,
-          likedByUser: like !== null,
-        };
-      })
-    );
 
-    res.status(200).json(contentWithLikes);
+    const contentWithLike = content.map((contentItem) => {
+      let isLiked = false;
+      contentItem.likes.length > 0 && (isLiked = true);
+
+      return { ...contentItem, isLiked, likes: undefined };
+    });
+
+    res.status(200).json(contentWithLike);
   } catch (error) {
     console.log('Error fetching user content', error);
     res

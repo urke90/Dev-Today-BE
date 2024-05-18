@@ -91,13 +91,13 @@ export const getUserContentSchema = z.object({
 });
 
 export const createLikeSchema = z.object({
-  userId: z.string().optional(),
   contentId: z.string(),
 });
 
 export const getUserContentTypeSchema = z.object({
   type: z.enum(['posts', 'meetups', 'podcasts']).optional(),
   page: z.coerce.number().default(1).optional(),
+  viewerId: z.string().optional(),
 });
 
 export const getUserGroupSchema = z.object({

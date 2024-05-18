@@ -59,15 +59,15 @@ model Followers {
 
 model Content {
   id        String       @id @default(uuid())
-  type      EContentType?
+  type      EContentType
   createdAt DateTime     @default(now())
   updatedAt DateTime?    @updatedAt
   author    User         @relation(fields: [authorId], references: [id])
   authorId  String
   likedBy   User[]       @relation("ContentLikes")
   likes     Like[]
-  title     String?
-  contentDescription   String?
+  title     String
+  contentDescription   String
   coverImage     String?
   meetUpLocationImage    String?
   meetUpDate     DateTime?
