@@ -22,7 +22,7 @@ model User {
   password              String?
   currentKnowledge      String?
   codingAmbitions       String[]
-  isOnboardingCompleted Boolean?
+  isOnboardingCompleted Boolean @default(false)
   preferredSkills       String[]
   contents              Content[]
   likedContents         Content[]   @relation("ContentLikes")
@@ -43,7 +43,9 @@ model User {
   ownedGroups           Group[]@relation("GroupAuthor")
   joinGroupUsers        GroupUser[]
   role                  Role        @default(USER)
+  isActiveUser           Boolean @default(false)
 }
+
 
 model Followers {
   followerId  String
@@ -54,8 +56,6 @@ model Followers {
   @@id([followerId, followingId])
 }
 
-//grupa ne sme da bude optional
-// za meetup treba meetap location 
 
 model Content {
   id        String       @id @default(uuid())
@@ -113,7 +113,7 @@ model Group {
   id        String   @id @default(uuid())
   name      String
   coverImg  String?
-  groupBio  String?
+  groupBio  String
   contents Content[]
   author  User @relation ("GroupAuthor",fields: [authorId], references: [id])
   authorId String 

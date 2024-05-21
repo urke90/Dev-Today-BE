@@ -22,7 +22,6 @@ import {
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { excludeField, excludeProperty } from '@/utils/prisma-functions';
 import { Group, GroupContent, GroupMember } from '@/types/content';
-import { userInfo } from 'os';
 
 // ----------------------------------------------------------------
 
