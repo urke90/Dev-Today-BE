@@ -1,27 +1,27 @@
-import type { Request, Response } from 'express';
-import { prisma, Prisma } from '@/database/prisma-client';
-import { genSalt, hash, compare } from 'bcrypt';
+import { Prisma, prisma } from '@/database/prisma-client';
 import {
-  type TypedRequestBody,
-  type TypedRequestParams,
-  TypedRequest,
-} from 'zod-express-middleware';
-import {
-  loginProviderSchema,
-  loginSchema,
-  registerSchema,
-  paramsIdSchema,
-  onboardingSchema,
-  paramsEmailSchema,
-  profileSchema,
-  getUserGroupSchema,
+  createLikeSchema,
   getUserContentSchema,
   getUserContentTypeSchema,
-  createLikeSchema,
+  getUserGroupSchema,
+  loginProviderSchema,
+  loginSchema,
+  onboardingSchema,
+  paramsEmailSchema,
+  paramsIdSchema,
+  profileSchema,
+  registerSchema,
 } from '@/lib/zod/user';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { excludeField, excludeProperty } from '@/utils/prisma-functions';
 import { Group, GroupContent, GroupMember } from '@/types/content';
+import { excludeField, excludeProperty } from '@/utils/prisma-functions';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { compare, genSalt, hash } from 'bcrypt';
+import type { Request, Response } from 'express';
+import {
+  TypedRequest,
+  type TypedRequestBody,
+  type TypedRequestParams,
+} from 'zod-express-middleware';
 
 // ----------------------------------------------------------------
 
@@ -336,6 +336,15 @@ export const getUserById = async (
         contents: {
           select: {
             id: true,
+            author: {
+              select: {
+                name: true,
+                avatarImg: true,
+              },
+            },
+            type: true,
+            meetupDate: true,
+            storyTags: true,
             title: true,
             contentDescription: true,
             coverImage: true,

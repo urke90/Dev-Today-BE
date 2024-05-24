@@ -43,7 +43,6 @@ model User {
   ownedGroups           Group[]@relation("GroupAuthor")
   joinGroupUsers        GroupUser[]
   role                  Role        @default(USER)
-  isActiveUser           Boolean @default(false)
 }
 
 
@@ -70,7 +69,7 @@ model Content {
   contentDescription   String
   coverImage     String?
   meetUpLocationImage    String?
-  meetUpDate     DateTime?
+  meetupDate     DateTime?
   podcastAudioFile   String?
   podcastAudiTitle   String?
   storyTags String[]
