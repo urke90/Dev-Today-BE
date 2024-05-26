@@ -1,7 +1,7 @@
 export enum EContentType {
-  POST = 'POST',
-  MEETUP = 'MEETUP',
-  PODCAST = 'PODCAST',
+  POSTS = 'posts',
+  MEETUPS = 'meetups',
+  PODCASTS = 'podcasts',
 }
 export interface GroupMember {
   user: {

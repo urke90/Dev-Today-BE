@@ -32,6 +32,7 @@
     "prettier": "^3.2.5",
     "prisma": "^5.12.1",
     "save-dev": "^0.0.1-security",
+    "zod": "^3.23.8",
     "zod-express-middleware": "^1.4.0",
     "zod-validation-error": "^3.1.0"
   },

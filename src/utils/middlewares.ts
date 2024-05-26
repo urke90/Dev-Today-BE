@@ -3,9 +3,6 @@ import z from 'zod';
 
 // ----------------------------------------------------------------
 
-/**
- * @type {function} ZOD validator for user routes.
- */
 export const validateReqBody =
   (schema: z.ZodObject<any>) =>
   (req: Request, res: Response, next: NextFunction) => {

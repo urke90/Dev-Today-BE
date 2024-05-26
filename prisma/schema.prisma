@@ -22,7 +22,7 @@ model User {
   password              String?
   currentKnowledge      String?
   codingAmbitions       String[]
-  isOnboardingCompleted Boolean @default(false)
+  isOnboardingCompleted Boolean     @default(false)
   preferredSkills       String[]
   contents              Content[]
   likedContents         Content[]   @relation("ContentLikes")
@@ -38,13 +38,12 @@ model User {
   twitterLink           String?
   followers             Followers[] @relation("follower")
   following             Followers[] @relation("following")
-  comments             Comment[]
-  likedComments        Comment[] @relation("CommentLikes")
-  ownedGroups           Group[]@relation("GroupAuthor")
+  comments              Comment[]
+  likedComments         Comment[]   @relation("CommentLikes")
+  ownedGroups           Group[]     @relation("GroupAuthor")
   joinGroupUsers        GroupUser[]
   role                  Role        @default(USER)
 }
-
 
 model Followers {
   followerId  String
@@ -55,38 +54,37 @@ model Followers {
   @@id([followerId, followingId])
 }
 
-
 model Content {
-  id        String       @id @default(uuid())
-  type      EContentType
-  createdAt DateTime     @default(now())
-  updatedAt DateTime?    @updatedAt
-  author    User         @relation(fields: [authorId], references: [id])
-  authorId  String
-  likedBy   User[]       @relation("ContentLikes")
-  likes     Like[]
-  title     String
-  contentDescription   String
-  coverImage     String?
-  meetUpLocationImage    String?
-  meetupDate     DateTime?
-  podcastAudioFile   String?
-  podcastAudiTitle   String?
-  storyTags String[]
-  comments Comment[]
-  viewsCount Int? @default(0)
-  likesCount Int? @default(0)
-  commentsCount Int? @default(0)
-  group Group? @relation(fields: [groupId], references: [id])
-  groupId String?
-  
+  id                  String       @id @default(uuid())
+  type                EContentType
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime?    @updatedAt
+  author              User         @relation(fields: [authorId], references: [id])
+  authorId            String
+  likedBy             User[]       @relation("ContentLikes")
+  likes               Like[]
+  title               String
+  contentDescription  String
+  coverImage          String?
+  meetUpLocationImage String?
+  meetupDate          DateTime?
+  podcastAudioFile    String?
+  podcastAudiTitle    String?
+  storyTags           String[]
+  comments            Comment[]
+  viewsCount          Int?         @default(0)
+  likesCount          Int?         @default(0)
+  commentsCount       Int?         @default(0)
+  group               Group?       @relation(fields: [groupId], references: [id])
+  groupId             String?
 }
-model Like  {
-  user User @relation(fields: [userId], references: [id])
-  userId String
-  content Content @relation(fields: [contentId], references: [id])
+
+model Like {
+  user      User    @relation(fields: [userId], references: [id])
+  userId    String
+  content   Content @relation(fields: [contentId], references: [id])
   contentId String
- 
+
   @@id([userId, contentId])
 }
 
@@ -96,36 +94,37 @@ enum EContentType {
   podcasts
 }
 
-model  Comment {
-id       String   @id @default(uuid())
-commentText  String
-createdAt DateTime @default(now())
-updatedAt DateTime? @updatedAt
-author User @relation(fields: [authorId], references: [id])
-authorId String
-contentId String
-content Content @relation(fields: [contentId], references: [id])
-likes User[] @relation("CommentLikes")
+model Comment {
+  id        String    @id @default(uuid())
+  text      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+  author    User      @relation(fields: [authorId], references: [id])
+  authorId  String
+  contentId String
+  content   Content   @relation(fields: [contentId], references: [id])
+  likes     User[]    @relation("CommentLikes")
 }
 
 model Group {
-  id        String   @id @default(uuid())
+  id        String      @id @default(uuid())
   name      String
   coverImg  String?
   groupBio  String
-  contents Content[]
-  author  User @relation ("GroupAuthor",fields: [authorId], references: [id])
-  authorId String 
-  members    GroupUser[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime? @updatedAt
+  contents  Content[]
+  author    User        @relation("GroupAuthor", fields: [authorId], references: [id])
+  authorId  String
+  members   GroupUser[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime?   @updatedAt
 }
-model GroupUser{
-  user      User @relation(fields: [userId], references: [id])
-  userId    String 
-  group     Group @relation(fields: [groupId], references: [id])
-  groupId   String
-  role      Role        @default(USER)
+
+model GroupUser {
+  user    User   @relation(fields: [userId], references: [id])
+  userId  String
+  group   Group  @relation(fields: [groupId], references: [id])
+  groupId String
+  role    Role   @default(USER)
 
   @@id([userId, groupId])
 }

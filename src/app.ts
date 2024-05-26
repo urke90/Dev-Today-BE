@@ -6,6 +6,10 @@ import { errorMap } from 'zod-validation-error';
 
 import { CORS_CONFIG } from '@/config';
 import { userRoutes } from '@/routes/user';
+import { contentRoutes } from './routes/content';
+import { groupRoutes } from './routes/group';
+
+// ----------------------------------------------------------------
 
 const app = express();
 dotenv.config();
@@ -17,6 +21,8 @@ app.use(express.json());
 app.use(cors(CORS_CONFIG));
 
 app.use('/api/user', userRoutes);
+app.use('/api/content', contentRoutes);
+app.use('/api/group', groupRoutes);
 
 const port = process.env.PORT || 8080;
 
