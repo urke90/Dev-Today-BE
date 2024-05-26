@@ -1,38 +1,37 @@
 import express from 'express';
 // import { validateRequestParams } from 'zod-express-middleware';
 import {
-  validateUserReqParams,
-  validateUserReqQuery,
-} from '@/utils/middlewares';
-import { validateUserReqBody } from '@/utils/middlewares';
-import {
-  loginSchema,
-  loginProviderSchema,
-  registerSchema,
-  onboardingSchema,
-  paramsEmailSchema,
-  profileSchema,
-  paramsIdSchema,
-  getUserContentSchema,
-  getUserGroupSchema,
-  getUserContentTypeSchema,
-  createLikeSchema,
-} from '@/lib/zod/user';
-import {
-  getAllUsers,
-  loginUser,
-  getUserByEmail,
-  loginUserWithProvider,
-  registerUser,
-  updateUserOnboarding,
-  getUserById,
-  updateUserProfile,
-  getUserContent,
   createLike,
   deleteUser,
   followUser,
+  getAllUsers,
+  getUserByEmail,
+  getUserById,
+  getUserContent,
   getUserGroups,
+  loginUser,
+  loginUserWithProvider,
+  registerUser,
+  updateUserOnboarding,
+  updateUserProfile,
 } from '@/controllers/user-ctrl';
+import {
+  createLikeSchema,
+  getUserContentTypeSchema,
+  getUserGroupSchema,
+  loginProviderSchema,
+  loginSchema,
+  onboardingSchema,
+  paramsEmailSchema,
+  paramsIdSchema,
+  profileSchema,
+  registerSchema,
+} from '@/lib/zod/user';
+import {
+  validateReqBody,
+  validateReqParams,
+  validateReqQuery,
+} from '@/utils/middlewares';
 
 export const userRoutes = express.Router();
 
@@ -40,65 +39,65 @@ userRoutes.get('/', getAllUsers);
 
 userRoutes.get(
   '/:id',
-  validateUserReqParams(paramsIdSchema),
-  validateUserReqQuery(profileSchema),
+  validateReqParams(paramsIdSchema),
+  validateReqQuery(profileSchema),
   getUserById
 );
 
 userRoutes.get(
   '/:id/content',
-  validateUserReqParams(paramsIdSchema),
-  validateUserReqQuery(getUserContentTypeSchema),
+  validateReqParams(paramsIdSchema),
+  validateReqQuery(getUserContentTypeSchema),
   getUserContent
 );
 userRoutes.post(
   '/content/:id/like',
-  validateUserReqParams(paramsIdSchema),
-  validateUserReqBody(createLikeSchema),
+  validateReqParams(paramsIdSchema),
+  validateReqBody(createLikeSchema),
   createLike
 );
 
 userRoutes.get(
   '/:id/groups',
-  validateUserReqParams(paramsIdSchema),
-  validateUserReqQuery(getUserGroupSchema),
+  validateReqParams(paramsIdSchema),
+  validateReqQuery(getUserGroupSchema),
   getUserGroups
 );
 
 userRoutes.post(
   '/:id/follow',
-  validateUserReqBody(paramsIdSchema),
-  validateUserReqBody(profileSchema),
+  validateReqBody(paramsIdSchema),
+  validateReqBody(profileSchema),
   followUser
 );
 
 userRoutes.patch(
   '/:id',
-  validateUserReqParams(paramsIdSchema),
-  validateUserReqBody(profileSchema),
+  validateReqParams(paramsIdSchema),
+  validateReqBody(profileSchema),
   updateUserProfile
 );
 
 userRoutes.get(
   '/email/:email',
-  validateUserReqParams(paramsEmailSchema),
+  validateReqParams(paramsEmailSchema),
   getUserByEmail
 );
 
-userRoutes.post('/register', validateUserReqBody(registerSchema), registerUser);
+userRoutes.post('/register', validateReqBody(registerSchema), registerUser);
 
-userRoutes.delete('/:id', validateUserReqParams(paramsIdSchema), deleteUser);
+userRoutes.delete('/:id', validateReqParams(paramsIdSchema), deleteUser);
 
-userRoutes.post('/login', validateUserReqBody(loginSchema), loginUser);
+userRoutes.post('/login', validateReqBody(loginSchema), loginUser);
 
 userRoutes.post(
   '/login-provider',
-  validateUserReqBody(loginProviderSchema),
+  validateReqBody(loginProviderSchema),
   loginUserWithProvider
 );
 
 userRoutes.patch(
   '/:id/onboarding',
-  validateUserReqBody(onboardingSchema),
+  validateReqBody(onboardingSchema),
   updateUserOnboarding
 );

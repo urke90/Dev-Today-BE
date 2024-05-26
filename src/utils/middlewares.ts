@@ -1,4 +1,4 @@
-import type { Request, Response, NextFunction } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import z from 'zod';
 
 // ----------------------------------------------------------------
@@ -6,7 +6,7 @@ import z from 'zod';
 /**
  * @type {function} ZOD validator for user routes.
  */
-export const validateUserReqBody =
+export const validateReqBody =
   (schema: z.ZodObject<any>) =>
   (req: Request, res: Response, next: NextFunction) => {
     const bodyValidation = schema.safeParse(req.body);
@@ -23,7 +23,7 @@ export const validateUserReqBody =
     next();
   };
 
-export const validateUserReqParams =
+export const validateReqParams =
   (schema: z.ZodObject<any>) =>
   (req: Request, res: Response, next: NextFunction) => {
     const paramsValidation = schema.safeParse(req.params);
@@ -44,7 +44,7 @@ export const validateUserReqParams =
     next();
   };
 
-export const validateUserReqQuery =
+export const validateReqQuery =
   (schema: z.ZodObject<any>) =>
   (req: Request, res: Response, next: NextFunction) => {
     const queryValidation = schema.safeParse(req.query);
