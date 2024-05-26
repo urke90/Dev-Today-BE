@@ -64,12 +64,12 @@ model Content {
   likedBy             User[]       @relation("ContentLikes")
   likes               Like[]
   title               String
-  contentDescription  String
+  description         String
   coverImage          String?
-  meetUpLocationImage String?
+  meetupLocationImage String?
   meetupDate          DateTime?
-  podcastAudioFile    String?
-  podcastAudiTitle    String?
+  podcastFile         String?
+  podcastTitle        String?
   storyTags           String[]
   comments            Comment[]
   viewsCount          Int?         @default(0)

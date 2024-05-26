@@ -346,7 +346,7 @@ export const getUserById = async (
             meetupDate: true,
             storyTags: true,
             title: true,
-            contentDescription: true,
+            description: true,
             coverImage: true,
           },
           orderBy: {

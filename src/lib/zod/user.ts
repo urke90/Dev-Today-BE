@@ -78,15 +78,15 @@ export const getUserContentSchema = z.object({
   contentId: z.string(),
   authorId: z.string(),
   title: z.string(),
-  contentDescription: z.string(),
+  description: z.string(),
   storyTags: z.array(z.string()).optional(),
   coverImage: z.string().optional(),
   viewsCount: z.number().optional(),
   likesCount: z.number().optional(),
   commentsCount: z.number().optional(),
   createdAt: z.date().optional(),
-  podcastAudioFile: z.string().optional(),
-  podcastAudioTitle: z.string().optional(),
+  podcastFile: z.string().optional(),
+  podcastTitle: z.string().optional(),
 });
 
 export const createLikeSchema = z.object({
