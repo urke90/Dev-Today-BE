@@ -1,4 +1,3 @@
-import { prisma } from '@/database/prisma-client';
 import { createContentSchema } from '@/lib/zod/content';
 import type { Response } from 'express';
 import type { TypedRequestBody } from 'zod-express-middleware';
@@ -26,13 +25,13 @@ export const createContent = async (
   } = req.body;
 
   try {
-    const newContent = await prisma.content.create({
-      data: {
-        title,
-        type,
-        description,
-      },
-    });
+    // const newContent = await prisma.content.create({
+    // //   data: {
+    // //     title,
+    // //     type,
+    // //     // description,
+    // //   },
+    // });
   } catch (error) {
     console.log('Error creating content', error);
   }
