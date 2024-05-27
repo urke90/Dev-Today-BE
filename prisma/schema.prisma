@@ -42,7 +42,6 @@ model User {
   likedComments         Comment[]   @relation("CommentLikes")
   ownedGroups           Group[]     @relation("GroupAuthor")
   joinGroupUsers        GroupUser[]
-  role                  Role        @default(USER)
 }
 
 model Followers {
@@ -66,11 +65,12 @@ model Content {
   title               String
   description         String
   coverImage          String?
+  meetupLocation      String?
   meetupLocationImage String?
   meetupDate          DateTime?
   podcastFile         String?
   podcastTitle        String?
-  storyTags           String[]
+  tags                String[]
   comments            Comment[]
   viewsCount          Int?         @default(0)
   likesCount          Int?         @default(0)
@@ -89,9 +89,9 @@ model Like {
 }
 
 enum EContentType {
-  posts
-  meetups
-  podcasts
+  POST
+  MEETUP
+  PODCAST
 }
 
 model Comment {

@@ -14,6 +14,7 @@ import {
 } from '@/lib/zod/user';
 import { Group, GroupContent, GroupMember } from '@/types/content';
 import { excludeField, excludeProperty } from '@/utils/prisma-functions';
+import { EContentType } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { compare, genSalt, hash } from 'bcrypt';
 import type { Request, Response } from 'express';
@@ -344,7 +345,7 @@ export const getUserById = async (
             },
             type: true,
             meetupDate: true,
-            storyTags: true,
+            tags: true,
             title: true,
             description: true,
             coverImage: true,
@@ -389,7 +390,7 @@ export const getUserContent = async (
     const content = await prisma.content.findMany({
       where: {
         authorId: id,
-        type: type,
+        type: type?.toUpperCase() as EContentType,
       },
       include: {
         likes: {

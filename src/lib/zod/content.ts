@@ -6,7 +6,7 @@ import z from 'zod';
 /**
  * ! COMMON
  * 1. title: string; DA
- * 2. type: 'posts'| 'meetups' | 'podcasts'; DA
+ * 2. type: 'POST'| 'POST' | 'PODCAST'; DA
  * 3. groupId: id DA
  * 4. coverImage: string;
  * 5. description: string;
@@ -26,47 +26,26 @@ import z from 'zod';
  * 9. comments: IContent
  */
 
-export const createContentSchema = z.object({
-  // id: z
-  //   .string()
-  //   .trim()
-  //   .uuid('ID must be unique and uuid')
-  //   .length(36, 'ID must be exactly 36 characters long!'),
-  title: z.string().trim().min(2, 'Title must be at least 2 characters long!'),
-  type: z.enum([EContentType.posts, EContentType.meetups, EContentType.posts]),
-  groupdId: z
+/**
+ * CONTENT CREATE
+ * ruta za search grupe, fitler je na BE, implementirati debouncing na FE
+ */
+
+/**
+ * GROUPS CREATE
+ */
+
+export const idSchema = z.object({
+  id: z
     .string()
     .trim()
-    .uuid()
+    .uuid('ID must be unique and uuid')
     .length(36, 'ID must be exactly 36 characters long!'),
-  coverImage: z.string().trim().optional(),
-  description: z
-    .string()
-    .trim()
-    .min(3, 'Description must be at least 3 characters long!'),
-  tags: z
-    .array(z.string().min(1, 'Tag must be at least 1 character long!'))
-    .optional(),
-  // comments: ,
-  meetupLocation: z
-    .string()
-    .trim()
-    .min(1, 'Location must be at least')
-    .optional(),
-  meetupDate: z.string().trim().date('Meetup Date is required!').optional(),
-  podcastFile: z.string().trim().url('Please provide valid URL!').optional(),
-  podcastTitle: z
-    .string()
-    .trim()
-    .min(2, 'Title must be at least 2 characters long!')
-    .optional(),
-  viewsCount: z.number().optional(),
-  likesCount: z.number().optional(),
-  commentsCount: z.number().optional(),
 });
 
-// comments
-
+/**
+ * @type {ZodObject} Comments schema used for all content types. 'POST' | 'MEETUP' | 'PODCAST'
+ */
 export const commentsSchema = z.object({
   id: z
     .string()
@@ -89,4 +68,101 @@ export const commentsSchema = z.object({
     .trim()
     .uuid('ID must be unique and uuid')
     .length(36, 'ID must be exactly 36 characters long!'),
+});
+
+/***************************************************************** CREATE ***********************************************************/
+
+const contentCreateBaseSchema = z.object({
+  title: z.string().trim().min(2, 'Title must be at least 2 characters long!'),
+  groupId: z
+    .string()
+    .trim()
+    .uuid('ID must be unique and uuid')
+    .length(36, 'ID must be exactly 36 characters long!'),
+  authorId: z
+    .string()
+    .trim()
+    .uuid('ID must be unique and uuid')
+    .length(36, 'ID must be exactly 36 characters long!'),
+  description: z
+    .string()
+    .trim()
+    .min(3, 'Description must be at least 3 characters long!'),
+  coverImage: z.string().trim().url().optional(),
+  tags: z
+    .array(z.string().min(1, 'Tag must be at least 1 character long!'))
+    .optional(),
+  comments: z.array(commentsSchema).optional(),
+});
+
+export const createPostSchema = contentCreateBaseSchema.extend({
+  type: z.literal(EContentType.POST),
+});
+
+export const createMeetupSchema = contentCreateBaseSchema.extend({
+  type: z.literal(EContentType.MEETUP),
+  meetupLocation: z
+    .string()
+    .trim()
+    .min(3, 'Location must be at least 3 characters long!'),
+  meetupLocationImage: z.string().trim().url().optional(),
+  meetupDate: z.coerce.date({
+    required_error: 'Date is required!',
+    invalid_type_error: 'Invalid date format!',
+  }),
+});
+
+export const createPodcastSchema = contentCreateBaseSchema.extend({
+  type: z.literal(EContentType.PODCAST),
+  podcastFile: z.string().trim().url('Please provide valid URL!'),
+  podcastTitle: z
+    .string()
+    .trim()
+    .min(2, 'Title must be at least 2 characters long!'),
+});
+
+/***************************************************************** CREATE ***********************************************************/
+
+/***************************************************************** UPDATE ***********************************************************/
+const contentUpdateBaseSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(2, 'Title must be at least 2 characters long!')
+    .optional(),
+  description: z
+    .string()
+    .trim()
+    .min(3, 'Description must be at least 3 characters long!')
+    .optional(),
+  coverImage: z.string().trim().url().optional(),
+  tags: z
+    .array(z.string().min(1, 'Tag must be at least 1 character long!'))
+    .optional(),
+  comments: z.array(commentsSchema).optional(),
+});
+export const updatePostSchema = contentUpdateBaseSchema.extend({});
+
+export const updateMeetupSchema = contentUpdateBaseSchema.extend({
+  meetupLocation: z
+    .string()
+    .trim()
+    .min(3, 'Location must be at least 3 characters long!')
+    .optional(),
+  meetupLocationImage: z.string().trim().url().optional(),
+  meetupDate: z.coerce
+    .date({
+      required_error: 'Date is required!',
+      invalid_type_error: 'Invalid date format!',
+    })
+    .optional(),
+});
+
+export const updatePodcastSchema = contentUpdateBaseSchema.extend({
+  podcastFile: z.string().trim().url('Please provide valid URL!').optional(),
+  podcastTitle: z
+    .string()
+    .trim()
+    .min(2, 'Title must be at least 2 characters long!')
+    .optional(),
 });

@@ -79,7 +79,7 @@ export const getUserContentSchema = z.object({
   authorId: z.string(),
   title: z.string(),
   description: z.string(),
-  storyTags: z.array(z.string()).optional(),
+  tags: z.array(z.string()).optional(),
   coverImage: z.string().optional(),
   viewsCount: z.number().optional(),
   likesCount: z.number().optional(),
@@ -94,7 +94,7 @@ export const createLikeSchema = z.object({
 });
 
 export const getUserContentTypeSchema = z.object({
-  type: z.enum(['posts', 'meetups', 'podcasts']).optional(),
+  type: z.enum(['post', 'meetup', 'podcast']).optional(),
   page: z.coerce.number().default(1).optional(),
   viewerId: z.string().optional(),
 });
