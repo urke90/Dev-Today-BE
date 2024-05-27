@@ -12,7 +12,7 @@ import {
   profileSchema,
   registerSchema,
 } from '@/lib/zod/user';
-import { Group, GroupContent, GroupMember } from '@/types/content';
+import { IGroup, IGroupContent, IGroupMember } from '@/types/group';
 import { excludeField, excludeProperty } from '@/utils/prisma-functions';
 import { EContentType } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
@@ -124,7 +124,6 @@ export const loginUser = async (
     res.status(500).json({
       message: 'Oops! An internal server error occurred on our end.',
     });
-
   }
 };
 
@@ -145,7 +144,6 @@ export const deleteUser = async (
     res.status(500).json({
       message: 'Oops! An internal server error occurred on our end.',
     });
-
   }
 };
 
@@ -162,7 +160,7 @@ export const loginUserWithProvider = async (
     });
 
     if (existingUser) return res.status(200).json({ user: existingUser });
-    
+
     const newUser = await prisma.user.create({
       data: {
         name,
@@ -219,7 +217,6 @@ export const updateUserOnboarding = async (
     res.status(500).json({
       message: 'Oops! An internal server error occurred on our end.',
     });
-
   }
 };
 
@@ -466,11 +463,11 @@ export const getUserGroups = async (
 
     if (groupContent) {
       groupContent = groupContent.map(
-        (groupMember: GroupContent) => groupMember.group
+        (groupMember: IGroupContent) => groupMember.group
       );
-      groupContent = groupContent.map((group: Group) => ({
+      groupContent = groupContent.map((group: IGroup) => ({
         ...group,
-        members: group.members.map((member: GroupMember) => member.user),
+        members: group.members.map((member: IGroupMember) => member.user),
       }));
     }
 

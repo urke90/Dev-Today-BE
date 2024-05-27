@@ -1,0 +1,102 @@
+import { Role } from '@prisma/client';
+import z from 'zod';
+
+// ----------------------------------------------------------------
+
+// model Group {
+//     id         String      @id @default(uuid())
+//     name       String
+//     coverImage String?
+//     bio        String
+//     contents   Content[]
+//     author     User        @relation("GroupAuthor", fields: [authorId], references: [id])
+//     authorId   String
+//     members    GroupUser[]
+//     createdAt  DateTime    @default(now())
+//     updatedAt  DateTime?   @updatedAt
+//   }
+
+// model GroupUser {
+//     user    User   @relation(fields: [userId], references: [id])
+//     userId  String
+//     group   Group  @relation(fields: [groupId], references: [id])
+//     groupId String
+//     role    Role   @default(USER)
+
+//     @@id([userId, groupId])
+//   }
+
+const membersSchema = z.object({
+  userId: z
+    .string()
+    .trim()
+    .uuid('User ID must be unique and uuid')
+    .length(36, 'Author ID must have 36 characters exactly'),
+  groupId: z
+    .string()
+    .trim()
+    .uuid('Group ID must be unique and uuid')
+    .length(36, 'Author ID must have 36 characters exactly'),
+  role: z.nativeEnum(Role),
+});
+
+/************************************************************ GROUP *******************************************************************/
+
+export const createGroupSchema = z.object({
+  authorId: z
+    .string()
+    .trim()
+    .uuid('Author ID must be unique and uuid')
+    .length(36, 'Author ID must have 36 characters exactly'),
+  name: z
+    .string()
+    .trim()
+    .min(1, 'Group name must be at least 1 character long!'),
+  profileImage: z
+    .string()
+    .trim()
+    .url('Please provide valid cover image url!')
+    .optional(),
+  coverImage: z
+    .string()
+    .trim()
+    .url('Please provide valid cover image url!')
+    .optional(),
+  bio: z
+    .string()
+    .trim()
+    .min(1, 'Bio must be at least 1 character long!')
+    .optional(),
+  members: z
+    .array(membersSchema)
+    .min(1, 'Group must have at least one member!'),
+});
+
+export const updateGroupSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, 'Group name must be at least 1 character long!')
+    .optional(),
+  profileImage: z
+    .string()
+    .trim()
+    .url('Please provide valid cover image url!')
+    .optional(),
+  coverImage: z
+    .string()
+    .trim()
+    .url('Please provide valid cover image url!')
+    .optional(),
+  bio: z
+    .string()
+    .trim()
+    .min(1, 'Bio must be at least 1 character long!')
+    .optional(),
+  members: z
+    .array(membersSchema)
+    .min(1, 'Group must have at least one member!')
+    .optional(),
+});
+
+/************************************************************ GROUP *******************************************************************/
