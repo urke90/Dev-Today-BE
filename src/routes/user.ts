@@ -1,5 +1,16 @@
 import express from 'express';
+
 // import { validateRequestParams } from 'zod-express-middleware';
+
+import { validateRequestParams } from 'zod-express-middleware';
+import {
+  loginSchema,
+  loginProviderSchema,
+  registerSchema,
+  onboardingSchema,
+  paramsEmailSchema,
+} from '@/lib/zod/user';
+
 import {
   createLike,
   deleteUser,
@@ -57,6 +68,7 @@ userRoutes.post(
   createLike
 );
 
+
 userRoutes.get(
   '/:id/groups',
   validateReqParams(paramsIdSchema),
@@ -93,11 +105,22 @@ userRoutes.post('/login', validateReqBody(loginSchema), loginUser);
 userRoutes.post(
   '/login-provider',
   validateReqBody(loginProviderSchema),
+);
+userRoutes.post('/register', validateReqBody(registerSchema), registerUser);
+
+userRoutes.post('/login', validateReqBody(loginSchema), loginUser);
+
+userRoutes.post(
+  '/login-provider',
+  validateUserBody(loginProviderSchema),
+
   loginUserWithProvider
 );
 
 userRoutes.patch(
   '/:id/onboarding',
+
   validateReqBody(onboardingSchema),
+
   updateUserOnboarding
 );

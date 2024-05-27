@@ -124,6 +124,7 @@ export const loginUser = async (
     res.status(500).json({
       message: 'Oops! An internal server error occurred on our end.',
     });
+
   }
 };
 
@@ -144,6 +145,7 @@ export const deleteUser = async (
     res.status(500).json({
       message: 'Oops! An internal server error occurred on our end.',
     });
+
   }
 };
 
@@ -160,7 +162,7 @@ export const loginUserWithProvider = async (
     });
 
     if (existingUser) return res.status(200).json({ user: existingUser });
-
+    
     const newUser = await prisma.user.create({
       data: {
         name,
@@ -169,7 +171,6 @@ export const loginUserWithProvider = async (
         avatarImg,
       },
     });
-
     res.status(200).json({ user: newUser });
   } catch (error) {
     console.log('Error logging in user', error);
@@ -218,6 +219,7 @@ export const updateUserOnboarding = async (
     res.status(500).json({
       message: 'Oops! An internal server error occurred on our end.',
     });
+
   }
 };
 

@@ -26,6 +26,8 @@ app.use('/api/group', groupRoutes);
 
 const port = process.env.PORT || 8080;
 
+const port = process.env.PORT || 8080;
+
 app.listen(port, () => {
   console.log(
     `Social Media app from Marko and Uros at http://localhost:${port}`

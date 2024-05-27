@@ -1,7 +1,11 @@
-import type { NextFunction, Request, Response } from 'express';
+
+
+import type { Request, Response, NextFunction } from 'express';
+
 import z from 'zod';
 
 // ----------------------------------------------------------------
+
 
 export const validateReqBody =
   (schema: z.ZodObject<any>) =>
@@ -17,6 +21,7 @@ export const validateReqBody =
 
       return res.status(400).json(validationError);
     }
+
     next();
   };
 
@@ -58,6 +63,7 @@ export const validateReqQuery =
 
       return res.status(400).json(validationError);
     }
+
 
     next();
   };
