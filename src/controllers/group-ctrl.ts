@@ -1,23 +1,20 @@
-import { prisma, Prisma } from '@/database/prisma-client';
+import { Prisma, prisma } from '@/database/prisma-client';
 import { idSchema } from '@/lib/zod/content';
-// import uui
 
-import { createGroupSchema, updateGroupSchema } from '@/lib/zod/group';
+import {
+  createGroupSchema,
+  groupNameQuery,
+  updateGroupSchema,
+} from '@/lib/zod/group';
 import { Role } from '@prisma/client';
-import { Response } from 'express';
-import { TypedRequest, TypedRequestBody } from 'zod-express-middleware';
+import type { Response } from 'express';
+import type {
+  TypedRequest,
+  TypedRequestBody,
+  TypedRequestQuery,
+} from 'zod-express-middleware';
 
 // ----------------------------------------------------------------
-
-// model GroupUser {
-//   user    User   @relation(fields: [userId], references: [id])
-//   userId  String
-//   group   Group  @relation(fields: [groupId], references: [id])
-//   groupId String
-//   role    Role   @default(USER)
-
-//   @@id([userId, groupId])
-// }
 
 /**
  * SOLITIONS
@@ -50,8 +47,6 @@ export const createGroup = async (
         },
       },
     });
-
-    console.log('newGroup', newGroup);
 
     res.status(201).json({ group: newGroup });
   } catch (error) {
@@ -99,6 +94,37 @@ export const updateGroup = async (
         res.status(400).json({ message: 'Invalid author ID' });
       }
     }
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
+
+export const getGroups = async (
+  req: TypedRequestQuery<typeof groupNameQuery>,
+  res: Response
+) => {
+  // ? DA LI IMA POTREBE DA  TRIM-ujemo VREDNOST ???
+  const name = req.query.name;
+
+  try {
+    const groups = await prisma.group.findMany({
+      where: {
+        name: {
+          contains: name,
+          mode: 'insensitive',
+        },
+      },
+    });
+    console.log('groups', groups);
+    const modifiedGroups = groups.map(({ id, name, bio, profileImage }) => ({
+      id,
+      name,
+      profileImage,
+      bio,
+    }));
+
+    res.status(200).json({ groups: modifiedGroups });
+  } catch (error) {
+    console.log('Error getting groups', error);
     res.status(500).json({ message: 'Internal server error!' });
   }
 };

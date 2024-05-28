@@ -18,6 +18,10 @@ const membersSchema = z.object({
   role: z.nativeEnum(Role),
 });
 
+export const groupNameQuery = z.object({
+  name: z.string().trim().optional(),
+});
+
 /************************************************************ GROUP *******************************************************************/
 
 export const createGroupSchema = z.object({

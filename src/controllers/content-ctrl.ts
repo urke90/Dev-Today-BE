@@ -1,4 +1,3 @@
-import { prisma, Prisma } from '@/database/prisma-client';
 import {
   createMeetupSchema,
   createPodcastSchema,
@@ -11,6 +10,7 @@ import {
 import type { Response } from 'express';
 import type { TypedRequest, TypedRequestBody } from 'zod-express-middleware';
 
+import { prisma, Prisma } from '@/database/prisma-client';
 // ----------------------------------------------------------------
 
 /***************************************************************** CREATE ********************************************************** */
