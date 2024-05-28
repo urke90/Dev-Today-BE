@@ -1,10 +1,11 @@
 import { prisma, Prisma } from '@/database/prisma-client';
+import { idSchema } from '@/lib/zod/content';
 // import uui
 
-import { createGroupSchema } from '@/lib/zod/group';
+import { createGroupSchema, updateGroupSchema } from '@/lib/zod/group';
 import { Role } from '@prisma/client';
-import { Request, Response } from 'express';
-import { TypedRequestBody } from 'zod-express-middleware';
+import { Response } from 'express';
+import { TypedRequest, TypedRequestBody } from 'zod-express-middleware';
 
 // ----------------------------------------------------------------
 
@@ -39,7 +40,6 @@ export const createGroup = async (
   try {
     const newGroup = await prisma.group.create({
       data: {
-        // id: groupId,
         authorId,
         name,
         coverImage,
@@ -53,12 +53,52 @@ export const createGroup = async (
 
     console.log('newGroup', newGroup);
 
-    res.status(201).json({ newGroup });
+    res.status(201).json({ group: newGroup });
   } catch (error) {
     console.log('Error creating group', error);
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2003') {
+        res.status(400).json({ message: 'Invalid author ID' });
+      }
     }
+    res.status(500).json({ message: 'Internal server error!' });
   }
 };
 
-export const updateGroup = (req: Request, res: Response) => {};
+export const updateGroup = async (
+  req: TypedRequest<typeof idSchema, any, typeof updateGroupSchema>,
+  res: Response
+) => {
+  const id = req.params.id;
+  const { bio, coverImage, members, name, profileImage } = req.body;
+
+  try {
+    const updatedGroup = await prisma.group.update({
+      where: {
+        id,
+      },
+      data: {
+        name,
+        profileImage,
+        coverImage,
+        bio,
+        members: {
+          deleteMany: {},
+          create: members,
+        },
+      },
+    });
+
+    console.log('updatedGroup', updatedGroup);
+
+    res.status(200).json({ group: updatedGroup });
+  } catch (error) {
+    console.log('Error updating group', error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2003') {
+        res.status(400).json({ message: 'Invalid author ID' });
+      }
+    }
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
