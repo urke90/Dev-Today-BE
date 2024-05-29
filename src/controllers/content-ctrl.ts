@@ -1,5 +1,6 @@
 import { idSchema } from '@/lib/zod/common';
 import {
+  contentTypeSchema,
   createMeetupSchema,
   createPodcastSchema,
   createPostSchema,
@@ -8,10 +9,36 @@ import {
   updatePostSchema,
 } from '@/lib/zod/content';
 import type { Response } from 'express';
-import type { TypedRequest, TypedRequestBody } from 'zod-express-middleware';
+import type {
+  TypedRequest,
+  TypedRequestBody,
+  TypedRequestQuery,
+} from 'zod-express-middleware';
 
 import { prisma, Prisma } from '@/database/prisma-client';
+import { EContentType } from '@prisma/client';
 // ----------------------------------------------------------------
+
+export const getContent = async (
+  req: TypedRequestQuery<typeof contentTypeSchema>,
+  res: Response
+) => {
+  const type = req.query.type;
+
+  try {
+    const content = await prisma.content.findMany({
+      where: {
+        type: type.toUpperCase() as EContentType,
+      },
+    });
+
+    console.log('content', content);
+
+    res.status(200).json({ content });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
 
 /***************************************************************** CREATE ********************************************************** */
 

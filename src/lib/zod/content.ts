@@ -1,3 +1,4 @@
+import { EContentTypeLowercase } from '@/types/content';
 import { EContentType } from '@prisma/client';
 import z from 'zod';
 
@@ -35,9 +36,10 @@ import z from 'zod';
  * GROUPS CREATE
  */
 
-/**
- * @type {ZodObject} Comments schema used for all content types. 'POST' | 'MEETUP' | 'PODCAST'
- */
+export const contentTypeSchema = z.object({
+  type: z.nativeEnum(EContentTypeLowercase),
+});
+
 export const commentsSchema = z.object({
   id: z
     .string()
