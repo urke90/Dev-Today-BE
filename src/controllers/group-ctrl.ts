@@ -1,5 +1,5 @@
 import { Prisma, prisma } from '@/database/prisma-client';
-import { idSchema } from '@/lib/zod/content';
+import { idSchema, pageNumberSchema } from '@/lib/zod/common';
 
 import {
   createGroupSchema,
@@ -65,7 +65,7 @@ export const updateGroup = async (
   res: Response
 ) => {
   const id = req.params.id;
-  const { bio, coverImage, members, name, profileImage } = req.body;
+  const { bio, coverImage, name, profileImage } = req.body;
 
   try {
     const updatedGroup = await prisma.group.update({
@@ -77,10 +77,6 @@ export const updateGroup = async (
         profileImage,
         coverImage,
         bio,
-        members: {
-          deleteMany: {},
-          create: members,
-        },
       },
     });
 
@@ -98,23 +94,64 @@ export const updateGroup = async (
   }
 };
 
-export const getGroups = async (
+export const getAllGroups = async (
+  req: TypedRequestQuery<typeof pageNumberSchema>,
+  res: Response
+) => {
+  const page = req.query.page ?? 1;
+  const groupsPerPage = 4;
+
+  try {
+    const groups = await prisma.group.findMany({
+      include: {
+        members: {
+          select: {
+            user: {
+              select: {
+                avatarImg: true,
+              },
+            },
+          },
+        },
+      },
+      take: 4,
+      skip: (page - 1) * groupsPerPage,
+    });
+
+    const modifiedGroups = groups.map(
+      ({ coverImage, name, id, members, bio }) => ({
+        id,
+        coverImage,
+        name,
+        bio,
+        members,
+      })
+    );
+
+    res.status(200).json({ groups: modifiedGroups });
+  } catch (error) {
+    console.log('Error getting groups', error);
+
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
+
+export const getGroupsForDropdown = async (
   req: TypedRequestQuery<typeof groupNameQuery>,
   res: Response
 ) => {
-  // ? DA LI IMA POTREBE DA  TRIM-ujemo VREDNOST ???
   const name = req.query.name;
 
   try {
     const groups = await prisma.group.findMany({
       where: {
         name: {
-          contains: name,
+          contains: name?.trim(),
           mode: 'insensitive',
         },
       },
     });
-    console.log('groups', groups);
+
     const modifiedGroups = groups.map(({ id, name, bio, profileImage }) => ({
       id,
       name,

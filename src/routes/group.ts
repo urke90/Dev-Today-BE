@@ -1,5 +1,10 @@
-import { createGroup, getGroups, updateGroup } from '@/controllers/group-ctrl';
-import { idSchema } from '@/lib/zod/content';
+import {
+  createGroup,
+  getAllGroups,
+  getGroupsForDropdown,
+  updateGroup,
+} from '@/controllers/group-ctrl';
+import { idSchema } from '@/lib/zod/common';
 import {
   createGroupSchema,
   groupNameQuery,
@@ -16,7 +21,13 @@ import express from 'express';
 
 export const groupRoutes = express.Router();
 
-groupRoutes.get('/', validateReqQuery(groupNameQuery), getGroups);
+groupRoutes.get('/', getAllGroups);
+
+groupRoutes.get(
+  '/content-create',
+  validateReqQuery(groupNameQuery),
+  getGroupsForDropdown
+);
 
 groupRoutes.post('/', validateReqBody(createGroupSchema), createGroup);
 

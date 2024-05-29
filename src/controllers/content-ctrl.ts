@@ -1,8 +1,8 @@
+import { idSchema } from '@/lib/zod/common';
 import {
   createMeetupSchema,
   createPodcastSchema,
   createPostSchema,
-  idSchema,
   updateMeetupSchema,
   updatePodcastSchema,
   updatePostSchema,

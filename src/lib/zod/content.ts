@@ -35,14 +35,6 @@ import z from 'zod';
  * GROUPS CREATE
  */
 
-export const idSchema = z.object({
-  id: z
-    .string()
-    .trim()
-    .uuid('ID must be unique and uuid')
-    .length(36, 'ID must be exactly 36 characters long!'),
-});
-
 /**
  * @type {ZodObject} Comments schema used for all content types. 'POST' | 'MEETUP' | 'PODCAST'
  */

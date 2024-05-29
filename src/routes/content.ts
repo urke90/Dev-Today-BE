@@ -6,11 +6,11 @@ import {
   updatePodcast,
   updatePost,
 } from '@/controllers/content-ctrl';
+import { idSchema } from '@/lib/zod/common';
 import {
   createMeetupSchema,
   createPodcastSchema,
   createPostSchema,
-  idSchema,
   updateMeetupSchema,
   updatePodcastSchema,
   updatePostSchema,
