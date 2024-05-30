@@ -29,9 +29,14 @@ export const getContent = async (
 
   const include: { [key: string]: any } = {};
 
-  // if (type === EContentType.POST || type === EContentType.PODCAST) {
-  //   include.user = { select: { avatar }}
-  // }
+  if (type === EContentType.POST || type === EContentType.PODCAST) {
+    include.author = {
+      select: {
+        avatarImg: true,
+        userName: true,
+      },
+    };
+  }
 
   try {
     const content = await prisma.content.findMany({
@@ -39,18 +44,11 @@ export const getContent = async (
         type,
       },
       include: {
-        author: {
-          select: {
-            avatarImg: true,
-            userName: true,
-          },
-        },
+        ...include,
       },
       skip: (page - 1) * itemsPerPage,
       take: itemsPerPage,
     });
-
-    // res.status(200).json(content);
 
     let modifiedContent = [];
 
