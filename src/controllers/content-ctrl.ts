@@ -12,6 +12,7 @@ import type { Response } from 'express';
 import type {
   TypedRequest,
   TypedRequestBody,
+  TypedRequestParams,
   TypedRequestQuery,
 } from 'zod-express-middleware';
 
@@ -115,6 +116,30 @@ export const getContent = async (
     res.status(200).json({ content: modifiedContent });
   } catch (error) {
     console.log('Error fetching content');
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
+
+export const getContentTags = async (
+  req: TypedRequestParams<typeof idSchema>,
+  res: Response
+) => {
+  const id = req.params.id;
+
+  try {
+    const contentsTags = await prisma.content.findMany({
+      where: {
+        authorId: id,
+      },
+      select: {
+        tags: true,
+      },
+    });
+
+    const tags = contentsTags.map((tag) => tag.tags).flat();
+
+    res.status(200).json({ tags });
+  } catch (error) {
     res.status(500).json({ message: 'Internal server error!' });
   }
 };
