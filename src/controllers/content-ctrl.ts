@@ -1,6 +1,6 @@
 import { idSchema } from '@/lib/zod/common';
 import {
-  contentTypeSchema,
+  allContentQuerySchema,
   createMeetupSchema,
   createPodcastSchema,
   createPostSchema,
@@ -20,25 +20,203 @@ import { EContentType } from '@prisma/client';
 // ----------------------------------------------------------------
 
 export const getContent = async (
-  req: TypedRequestQuery<typeof contentTypeSchema>,
+  req: TypedRequestQuery<typeof allContentQuerySchema>,
   res: Response
 ) => {
-  const type = req.query.type;
+  const type = (req.query.type as string)?.toUpperCase() as EContentType;
+  const page = req.query.page ? Number(req.query.page) : 1;
+  const itemsPerPage = 4;
+
+  const include: { [key: string]: any } = {};
+
+  // if (type === EContentType.POST || type === EContentType.PODCAST) {
+  //   include.user = { select: { avatar }}
+  // }
 
   try {
     const content = await prisma.content.findMany({
       where: {
-        type: type.toUpperCase() as EContentType,
+        type,
       },
+      include: {
+        author: {
+          select: {
+            avatarImg: true,
+            userName: true,
+          },
+        },
+      },
+      skip: (page - 1) * itemsPerPage,
+      take: itemsPerPage,
     });
 
-    console.log('content', content);
+    // res.status(200).json(content);
 
-    res.status(200).json({ content });
+    let modifiedContent = [];
+
+    if (type === EContentType.POST) {
+      modifiedContent = content.map(
+        ({
+          id,
+          title,
+          description,
+          coverImage,
+          tags,
+          viewsCount,
+          likesCount,
+          commentsCount,
+          author,
+          createdAt,
+        }) => ({
+          id,
+          title,
+          description,
+          coverImage,
+          tags,
+          viewsCount,
+          likesCount,
+          commentsCount,
+          author,
+          createdAt,
+        })
+      );
+    } else if (type === EContentType.MEETUP) {
+      modifiedContent = content.map(
+        ({
+          id,
+          title,
+          description,
+          coverImage,
+          tags,
+          meetupLocation,
+          meetupDate,
+        }) => ({
+          id,
+          title,
+          description,
+          coverImage,
+          tags,
+          meetupLocation,
+          meetupDate,
+        })
+      );
+    } else {
+      modifiedContent = content.map(
+        ({ id, title, description, coverImage, tags, author, createdAt }) => ({
+          id,
+          title,
+          description,
+          coverImage,
+          tags,
+          author,
+          createdAt,
+        })
+      );
+    }
+
+    res.status(200).json({ content: modifiedContent });
   } catch (error) {
+    console.log('Error fetching content');
     res.status(500).json({ message: 'Internal server error!' });
   }
 };
+
+// export const getPosts = async (req: Request, res: Response) => {
+//   try {
+//     const content = await prisma.content.findMany({
+//       where: {
+//         type: EContentType.POST,
+//       },
+//     });
+
+//     let modifiedContent = content.map(
+//       ({
+//         id,
+//         title,
+//         description,
+//         coverImage,
+//         tags,
+//         viewsCount,
+//         likesCount,
+//         commentsCount,
+//       }) => ({
+//         id,
+//         title,
+//         description,
+//         coverImage,
+//         tags,
+//         viewsCount,
+//         likesCount,
+//         commentsCount,
+//       })
+//     );
+
+//     console.log('modifiedContent', modifiedContent);
+
+//     res.status(200).json({ content: modifiedContent });
+//   } catch (error) {
+//     console.log('Error fetching posts');
+//     res.status(500).json({ message: 'Internal server error!' });
+//   }
+// };
+
+// export const getMeetups = async (req: Request, res: Response) => {
+//   try {
+//     const content = await prisma.content.findMany({
+//       where: {
+//         type: EContentType.MEETUP,
+//       },
+//     });
+
+//     const modifiedContent = content.map(
+//       ({
+//         id,
+//         title,
+//         description,
+//         coverImage,
+//         tags,
+//         meetupLocation,
+//         meetupDate,
+//       }) => ({
+//         id,
+//         title,
+//         description,
+//         coverImage,
+//         tags,
+//         meetupLocation,
+//         meetupDate,
+//       })
+//     );
+//     res.status(200).json({ content: modifiedContent });
+//   } catch (error) {
+//     console.log('Error fetching meetups', error);
+//     res.status(500).json({ message: 'Internal server error!' });
+//   }
+// };
+
+// export const getPodcasts = async (req: Request, res: Response) => {
+//   try {
+//     const content = await prisma.content.findMany({
+//       where: {
+//         type: EContentType.PODCAST,
+//       },
+//     });
+
+//     const modifiedContent = content.map(
+//       ({ id, title, description, coverImage, tags }) => ({
+//         id,
+//         title,
+//         description,
+//         coverImage,
+//         tags,
+//       })
+//     );
+
+//     res.status(200).json({ content: modifiedContent });
+//   } catch (error) {
+//     res.status(500).json({ message: 'Internal server error!' });
+//   }
+// };
 
 /***************************************************************** CREATE ********************************************************** */
 

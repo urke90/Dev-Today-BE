@@ -2,12 +2,14 @@ import {
   createMeetup,
   createPodcast,
   createPost,
+  getContent,
   updateMeetup,
   updatePodcast,
   updatePost,
 } from '@/controllers/content-ctrl';
 import { idSchema } from '@/lib/zod/common';
 import {
+  allContentQuerySchema,
   createMeetupSchema,
   createPodcastSchema,
   createPostSchema,
@@ -15,12 +17,18 @@ import {
   updatePodcastSchema,
   updatePostSchema,
 } from '@/lib/zod/content';
-import { validateReqBody, validateReqParams } from '@/utils/middlewares';
+import {
+  validateReqBody,
+  validateReqParams,
+  validateReqQuery,
+} from '@/utils/middlewares';
 import express from 'express';
 
 // ----------------------------------------------------------------
 
 export const contentRoutes = express.Router();
+
+contentRoutes.get('/', validateReqQuery(allContentQuerySchema), getContent);
 
 /***************************************************************** CREATE ********************************************************** */
 

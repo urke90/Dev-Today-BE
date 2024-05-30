@@ -40,6 +40,11 @@ export const contentTypeSchema = z.object({
   type: z.nativeEnum(EContentTypeLowercase),
 });
 
+export const allContentQuerySchema = z.object({
+  type: z.enum(['post', 'meetup', 'podcast']),
+  page: z.string().optional(),
+});
+
 export const commentsSchema = z.object({
   id: z
     .string()
