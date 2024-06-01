@@ -70,7 +70,7 @@ model Content {
   meetupDate          DateTime?
   podcastFile         String?
   podcastTitle        String?
-  tags                TagContent[]
+  tags                Tag[]
   comments            Comment[]
   viewsCount          Int?         @default(0)
   likesCount          Int?         @default(0)
@@ -89,18 +89,9 @@ model Like {
 }
 
 model Tag {
-  id       String       @id @default(uuid())
-  title    String       @unique
-  contents TagContent[]
-}
-
-model TagContent {
-  tag       Tag     @relation(fields: [tagId], references: [id])
-  content   Content @relation(fields: [contentId], references: [id])
-  tagId     String
-  contentId String
-
-  @@id([tagId, contentId])
+  id       String    @id @default(uuid())
+  title    String    @unique
+  contents Content[]
 }
 
 model Comment {

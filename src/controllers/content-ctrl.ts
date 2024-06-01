@@ -29,13 +29,18 @@ export const getContent = async (
   const page = req.query.page ? Number(req.query.page) : 1;
   const itemsPerPage = 4;
 
-  const include: { [key: string]: any } = {};
+  let include: { [key: string]: any } = {
+    tags: true,
+  };
 
   if (type === EContentType.POST || type === EContentType.PODCAST) {
-    include.author = {
-      select: {
-        avatarImg: true,
-        userName: true,
+    include = {
+      ...include,
+      author: {
+        select: {
+          avatarImg: true,
+          userName: true,
+        },
       },
     };
   }
@@ -102,13 +107,21 @@ export const getContent = async (
       );
     } else {
       modifiedContent = content.map(
-        ({ id, title, description, coverImage, tags, author, createdAt }) => ({
+        ({
           id,
           title,
           description,
           coverImage,
           tags,
-          author,
+          //  author,
+          createdAt,
+        }) => ({
+          id,
+          title,
+          description,
+          coverImage,
+          tags,
+          // author,
           createdAt,
         })
       );
@@ -306,12 +319,7 @@ export const createPost = async (
   const { description, groupId, title, type, coverImage, tags, authorId } =
     req.body;
 
-  // const tagsToCreate = tags.map((tag) => ({ tag: { title: tag } }));
-
-  // console.log('tagsToCreate', tagsToCreate);
-
   try {
-    // ovo su tagovi koji vec postoje u bazi => { id:string, title:string }
     const existingTags = await prisma.tag.findMany({
       where: {
         title: {
@@ -320,44 +328,36 @@ export const createPost = async (
         },
       },
     });
+    const allTags = [...existingTags];
 
-    // * arry of tags titles
     const existingTagsTitles = existingTags.map((tag) => tag.title);
     const tagTitlesToCreate = tags.filter(
       (tag) => !existingTagsTitles.includes(tag)
     );
 
-    const createdTags = await prisma.tag.createMany({
-      data: tagTitlesToCreate.map((title) => ({ title })),
-      skipDuplicates: true,
+    if (tagTitlesToCreate.length > 0) {
+      const createdTags = await prisma.tag.createManyAndReturn({
+        data: tagTitlesToCreate.map((title) => ({ title })),
+        skipDuplicates: true,
+      });
+      allTags.concat(createdTags);
+    }
+
+    const post = await prisma.content.create({
+      data: {
+        title,
+        type,
+        description,
+        coverImage,
+        authorId,
+        groupId,
+        tags: {
+          connect: allTags,
+        },
+      },
     });
 
-    res.status(200).json(createdTags);
-
-    // this will return the tags that doesn't exist in the database
-    // const tagsToCreate = tags.filter((tag) => existingTags.includes(tag));
-
-    // console.log('tagsToCreate', tagsToCreate);
-    // res.status(200).json(tagsToCreate);
-
-    // const post = await prisma.content.create({
-    //   data: {
-    //     title,
-    //     type,
-    //     description,
-    //     coverImage,
-    //     authorId,
-    //     groupId,
-    //     // tags: {
-    //     //   connectOrCreate: tags.map((tag) => ({
-    //     //     where: { title: tag },
-    //     //     create: { title: tag }
-    //     //   }))
-    //     // }
-    //   },
-    // });
-
-    // res.status(201).json({ post });
+    res.status(201).json({ post });
   } catch (error) {
     console.log('Error creating post', error);
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -387,6 +387,29 @@ export const createMeetup = async (
   } = req.body;
 
   try {
+    const existingTags = await prisma.tag.findMany({
+      where: {
+        title: {
+          in: tags,
+          mode: 'insensitive',
+        },
+      },
+    });
+    const allTags = [...existingTags];
+
+    const existingTagsTitles = existingTags.map((tag) => tag.title);
+    const tagTitlesToCreate = tags.filter(
+      (tag) => !existingTagsTitles.includes(tag)
+    );
+
+    if (tagTitlesToCreate.length > 0) {
+      const createdTags = await prisma.tag.createManyAndReturn({
+        data: tagTitlesToCreate.map((title) => ({ title })),
+        skipDuplicates: true,
+      });
+      allTags.concat(createdTags);
+    }
+
     const meetup = await prisma.content.create({
       data: {
         title,
@@ -395,7 +418,9 @@ export const createMeetup = async (
         coverImage,
         authorId,
         groupId,
-        // tags,
+        tags: {
+          connect: allTags,
+        },
         meetupDate,
         meetupLocationImage,
         meetupLocation,
@@ -431,6 +456,29 @@ export const createPodcast = async (
   } = req.body;
 
   try {
+    const existingTags = await prisma.tag.findMany({
+      where: {
+        title: {
+          in: tags,
+          mode: 'insensitive',
+        },
+      },
+    });
+    const allTags = [...existingTags];
+
+    const existingTagsTitles = existingTags.map((tag) => tag.title);
+    const tagTitlesToCreate = tags.filter(
+      (tag) => !existingTagsTitles.includes(tag)
+    );
+
+    if (tagTitlesToCreate.length > 0) {
+      const createdTags = await prisma.tag.createManyAndReturn({
+        data: tagTitlesToCreate.map((title) => ({ title })),
+        skipDuplicates: true,
+      });
+      allTags.concat(createdTags);
+    }
+
     const podcast = await prisma.content.create({
       data: {
         title,
@@ -439,7 +487,9 @@ export const createPodcast = async (
         coverImage,
         authorId,
         groupId,
-        // tags,
+        tags: {
+          connect: allTags,
+        },
         podcastFile,
         podcastTitle,
       },
