@@ -518,6 +518,29 @@ export const updatePost = async (
   const { description, title, coverImage, tags } = req.body;
 
   try {
+    const existingTags = await prisma.tag.findMany({
+      where: {
+        title: {
+          in: tags,
+          mode: 'insensitive',
+        },
+      },
+    });
+    const allTags = [...existingTags];
+
+    const existingTagsTitles = existingTags.map((tag) => tag.title);
+    const tagTitlesToCreate = tags?.filter(
+      (tag) => !existingTagsTitles.includes(tag)
+    );
+
+    if (tagTitlesToCreate && tagTitlesToCreate.length > 0) {
+      const createdTags = await prisma.tag.createManyAndReturn({
+        data: tagTitlesToCreate.map((title) => ({ title })),
+        skipDuplicates: true,
+      });
+      allTags.concat(createdTags);
+    }
+
     const post = await prisma.content.update({
       where: {
         id,
@@ -526,7 +549,9 @@ export const updatePost = async (
         title,
         description,
         coverImage,
-        // tags,
+        tags: {
+          connect: allTags,
+        },
       },
     });
     console.log('post', post);
@@ -561,6 +586,29 @@ export const updateMeetup = async (
   console.log('meetup date', meetupDate);
 
   try {
+    const existingTags = await prisma.tag.findMany({
+      where: {
+        title: {
+          in: tags,
+          mode: 'insensitive',
+        },
+      },
+    });
+    const allTags = [...existingTags];
+
+    const existingTagsTitles = existingTags.map((tag) => tag.title);
+    const tagTitlesToCreate = tags?.filter(
+      (tag) => !existingTagsTitles.includes(tag)
+    );
+
+    if (tagTitlesToCreate && tagTitlesToCreate.length > 0) {
+      const createdTags = await prisma.tag.createManyAndReturn({
+        data: tagTitlesToCreate.map((title) => ({ title })),
+        skipDuplicates: true,
+      });
+      allTags.concat(createdTags);
+    }
+
     const meetup = await prisma.content.update({
       where: {
         id,
@@ -569,7 +617,9 @@ export const updateMeetup = async (
         title,
         description,
         coverImage,
-        // tags,
+        tags: {
+          connect: allTags,
+        },
         meetupDate,
         meetupLocationImage,
         meetupLocation,
@@ -598,6 +648,29 @@ export const updatePodcast = async (
     req.body;
 
   try {
+    const existingTags = await prisma.tag.findMany({
+      where: {
+        title: {
+          in: tags,
+          mode: 'insensitive',
+        },
+      },
+    });
+    const allTags = [...existingTags];
+
+    const existingTagsTitles = existingTags.map((tag) => tag.title);
+    const tagTitlesToCreate = tags?.filter(
+      (tag) => !existingTagsTitles.includes(tag)
+    );
+
+    if (tagTitlesToCreate && tagTitlesToCreate.length > 0) {
+      const createdTags = await prisma.tag.createManyAndReturn({
+        data: tagTitlesToCreate.map((title) => ({ title })),
+        skipDuplicates: true,
+      });
+      allTags.concat(createdTags);
+    }
+
     const podcast = await prisma.content.update({
       where: {
         id,
@@ -606,7 +679,9 @@ export const updatePodcast = async (
         title,
         description,
         coverImage,
-        // tags,
+        tags: {
+          connect: allTags,
+        },
         podcastFile,
         podcastTitle,
       },
