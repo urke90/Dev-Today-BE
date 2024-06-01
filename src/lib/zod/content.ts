@@ -88,9 +88,7 @@ const contentCreateBaseSchema = z.object({
     .trim()
     .min(3, 'Description must be at least 3 characters long!'),
   coverImage: z.string().trim().url().optional(),
-  tags: z
-    .array(z.string().min(1, 'Tag must be at least 1 character long!'))
-    .optional(),
+  tags: z.array(z.string().min(1, 'Tag must be at least 1 character long!')),
   comments: z.array(commentsSchema).optional(),
 });
 

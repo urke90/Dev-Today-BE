@@ -70,7 +70,7 @@ model Content {
   meetupDate          DateTime?
   podcastFile         String?
   podcastTitle        String?
-  tags                String[]
+  tags                TagContent[]
   comments            Comment[]
   viewsCount          Int?         @default(0)
   likesCount          Int?         @default(0)
@@ -88,10 +88,19 @@ model Like {
   @@id([userId, contentId])
 }
 
-enum EContentType {
-  POST
-  MEETUP
-  PODCAST
+model Tag {
+  id       String       @id @default(uuid())
+  title    String       @unique
+  contents TagContent[]
+}
+
+model TagContent {
+  tag       Tag     @relation(fields: [tagId], references: [id])
+  content   Content @relation(fields: [contentId], references: [id])
+  tagId     String
+  contentId String
+
+  @@id([tagId, contentId])
 }
 
 model Comment {
@@ -133,4 +142,10 @@ model GroupUser {
 enum Role {
   USER
   ADMIN
+}
+
+enum EContentType {
+  POST
+  MEETUP
+  PODCAST
 }

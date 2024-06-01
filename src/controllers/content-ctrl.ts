@@ -8,7 +8,7 @@ import {
   updatePodcastSchema,
   updatePostSchema,
 } from '@/lib/zod/content';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import type {
   TypedRequest,
   TypedRequestBody,
@@ -18,6 +18,7 @@ import type {
 
 import { prisma, Prisma } from '@/database/prisma-client';
 import { EContentType } from '@prisma/client';
+
 // ----------------------------------------------------------------
 
 export const getContent = async (
@@ -144,6 +145,23 @@ export const getContentTags = async (
   }
 };
 
+export const getTags = async (req: Request, res: Response) => {
+  try {
+    const tags = await prisma.tag.findMany({
+      where: {
+        title: {
+          contains: 'tech Stack',
+          mode: 'insensitive',
+        },
+      },
+    });
+    console.log('tags');
+    res.status(200).json({ tags });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
+
 // export const getPosts = async (req: Request, res: Response) => {
 //   try {
 //     const content = await prisma.content.findMany({
@@ -243,6 +261,44 @@ export const getContentTags = async (
 
 /***************************************************************** CREATE ********************************************************** */
 
+/**
+ * 1.Imam listu tagova koje treba da dodam ['web development', 'tech stack', 'nesto']
+ * 2.tagovi u mojoj bazi
+ */
+
+// const existingTagsDUMMY = [
+//   { id: 'f895b8eb-ca5c-416c-8966-3b5a6b8dcb6f', title: 'Tech Stack' },
+//   {
+//     id: 'cbe1849f-19dc-40f2-be6d-8399878f228b',
+//     title: 'Web Development',
+//   },
+//   { id: '6243579b-bb5a-4549-92d4-159943fb0ca2', title: 'Tech Stack' },
+//   {
+//     id: 'cd14a64d-d54e-42f3-8d68-4cf52146f81b',
+//     title: 'Web Development',
+//   },
+//   { id: '58a65718-3f35-483e-b368-03dcd3df5e24', title: 'Tech Stack' },
+//   {
+//     id: '13ccfeb2-a771-4920-a73e-c78d2927b07e',
+//     title: 'Web Development',
+//   },
+//   { id: 'f3a8d2a6-1d41-4130-9509-e50dcf3cba92', title: 'Tech Stack' },
+//   {
+//     id: '195c4563-c4dc-442d-a295-7e1f1a52be75',
+//     title: 'Web Development',
+//   },
+//   { id: '8c860fc0-19d2-4f42-a7ea-b59f83c89eb7', title: 'Tech Stack' },
+//   {
+//     id: '45af3ef4-3a9f-49a2-9813-a8e1b50c248a',
+//     title: 'Web Development',
+//   },
+//   { id: 'd4b45047-bd87-4635-a48a-99afe76aff2b', title: 'Tech Stack' },
+//   {
+//     id: '603d35c2-a3e7-4212-9905-c9befe1a3179',
+//     title: 'Web Development',
+//   },
+// ];
+
 export const createPost = async (
   req: TypedRequestBody<typeof createPostSchema>,
   res: Response
@@ -250,20 +306,58 @@ export const createPost = async (
   const { description, groupId, title, type, coverImage, tags, authorId } =
     req.body;
 
+  // const tagsToCreate = tags.map((tag) => ({ tag: { title: tag } }));
+
+  // console.log('tagsToCreate', tagsToCreate);
+
   try {
-    const post = await prisma.content.create({
-      data: {
-        title,
-        type,
-        description,
-        coverImage,
-        authorId,
-        groupId,
-        tags,
+    // ovo su tagovi koji vec postoje u bazi => { id:string, title:string }
+    const existingTags = await prisma.tag.findMany({
+      where: {
+        title: {
+          in: tags,
+          mode: 'insensitive',
+        },
       },
     });
 
-    res.status(201).json({ post });
+    // * arry of tags titles
+    const existingTagsTitles = existingTags.map((tag) => tag.title);
+    const tagTitlesToCreate = tags.filter(
+      (tag) => !existingTagsTitles.includes(tag)
+    );
+
+    const createdTags = await prisma.tag.createMany({
+      data: tagTitlesToCreate.map((title) => ({ title })),
+      skipDuplicates: true,
+    });
+
+    res.status(200).json(createdTags);
+
+    // this will return the tags that doesn't exist in the database
+    // const tagsToCreate = tags.filter((tag) => existingTags.includes(tag));
+
+    // console.log('tagsToCreate', tagsToCreate);
+    // res.status(200).json(tagsToCreate);
+
+    // const post = await prisma.content.create({
+    //   data: {
+    //     title,
+    //     type,
+    //     description,
+    //     coverImage,
+    //     authorId,
+    //     groupId,
+    //     // tags: {
+    //     //   connectOrCreate: tags.map((tag) => ({
+    //     //     where: { title: tag },
+    //     //     create: { title: tag }
+    //     //   }))
+    //     // }
+    //   },
+    // });
+
+    // res.status(201).json({ post });
   } catch (error) {
     console.log('Error creating post', error);
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -301,7 +395,7 @@ export const createMeetup = async (
         coverImage,
         authorId,
         groupId,
-        tags,
+        // tags,
         meetupDate,
         meetupLocationImage,
         meetupLocation,
@@ -345,7 +439,7 @@ export const createPodcast = async (
         coverImage,
         authorId,
         groupId,
-        tags,
+        // tags,
         podcastFile,
         podcastTitle,
       },
@@ -382,7 +476,7 @@ export const updatePost = async (
         title,
         description,
         coverImage,
-        tags,
+        // tags,
       },
     });
     console.log('post', post);
@@ -425,7 +519,7 @@ export const updateMeetup = async (
         title,
         description,
         coverImage,
-        tags,
+        // tags,
         meetupDate,
         meetupLocationImage,
         meetupLocation,
@@ -462,7 +556,7 @@ export const updatePodcast = async (
         title,
         description,
         coverImage,
-        tags,
+        // tags,
         podcastFile,
         podcastTitle,
       },

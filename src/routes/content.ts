@@ -4,6 +4,7 @@ import {
   createPost,
   getContent,
   getContentTags,
+  getTags,
   updateMeetup,
   updatePodcast,
   updatePost,
@@ -27,7 +28,13 @@ import express from 'express';
 
 // ----------------------------------------------------------------
 
+// 1. create Tags Model connect to Content
+// 2. fix getGroups for Dropdown with limit
+// 3. fix return num of items for Content
+
 export const contentRoutes = express.Router();
+
+contentRoutes.get('/tags', getTags);
 
 contentRoutes.get('/', validateReqQuery(allContentQuerySchema), getContent);
 
