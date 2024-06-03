@@ -35,7 +35,7 @@ export const contentRoutes = express.Router();
 
 contentRoutes.get('/', validateReqQuery(allContentQuerySchema), getContent);
 
-contentRoutes.get('/tags', validateReqParams(idSchema), getAllTags);
+contentRoutes.get('/tags', getAllTags);
 
 /***************************************************************** CREATE ********************************************************** */
 

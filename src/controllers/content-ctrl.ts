@@ -20,6 +20,9 @@ import { EContentType } from '@prisma/client';
 
 // ----------------------------------------------------------------
 
+// grupe vracam 3 i na 2 chars aktivira search
+// tags neka vrati 3 i aktivira search na 2
+
 export const getContent = async (
   req: TypedRequestQuery<typeof allContentQuerySchema>,
   res: Response
@@ -136,9 +139,13 @@ export const getContent = async (
 export const getAllTags = async (req: Request, res: Response) => {
   try {
     const tags = await prisma.tag.findMany();
+
+    res.status(200).json({ tags });
   } catch (error) {
     console.log('Error fething tags', error);
-    res.status(500).json({ message: 'Internal server error!' });
+    res
+      .status(500)
+      .json({ message: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' });
   }
 };
 
