@@ -20,7 +20,6 @@ const membersSchema = z.object({
 
 export const groupDropdownSchema = z.object({
   name: z.string().trim().optional(),
-  page: z.string().trim().optional(),
 });
 
 /************************************************************ GROUP *******************************************************************/
