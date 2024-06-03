@@ -8,7 +8,7 @@ import {
   updatePodcastSchema,
   updatePostSchema,
 } from '@/lib/zod/content';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import type {
   TypedRequest,
   TypedRequestBody,
@@ -133,17 +133,13 @@ export const getContent = async (
   }
 };
 
-export const getTags = async (
-  req: TypedRequestQuery<typeof idSchema>,
-  res: Response
-) => {
-  const id = req.query.id;
-
+export const getAllTags = async (req: Request, res: Response) => {
   try {
-    const tags = await prisma.tag.findMany({
-      where: {},
-    });
-  } catch (error) {}
+    const tags = await prisma.tag.findMany();
+  } catch (error) {
+    console.log('Error fething tags', error);
+    res.status(500).json({ message: 'Internal server error!' });
+  }
 };
 
 /***************************************************************** CREATE ********************************************************** */
