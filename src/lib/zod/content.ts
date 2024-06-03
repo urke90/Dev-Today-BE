@@ -45,6 +45,10 @@ export const allContentQuerySchema = z.object({
   page: z.string().optional(),
 });
 
+export const tagsTitleSchema = z.object({
+  title: z.string().trim().optional(),
+});
+
 export const commentsSchema = z.object({
   id: z
     .string()

@@ -4,11 +4,12 @@ import {
   createMeetupSchema,
   createPodcastSchema,
   createPostSchema,
+  tagsTitleSchema,
   updateMeetupSchema,
   updatePodcastSchema,
   updatePostSchema,
 } from '@/lib/zod/content';
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
 import type {
   TypedRequest,
   TypedRequestBody,
@@ -136,9 +137,31 @@ export const getContent = async (
   }
 };
 
-export const getAllTags = async (req: Request, res: Response) => {
+export const getAllTags = async (
+  req: TypedRequestQuery<typeof tagsTitleSchema>,
+  res: Response
+) => {
+  const title = req.query.title?.trim();
+  const tagsPerPage = 3;
+
+  let where: { [ket: string]: any } = {};
+
+  if (title && title?.length > 1) {
+    where = {
+      title: {
+        contains: title,
+        mode: 'insensitive',
+      },
+    };
+  }
+
   try {
-    const tags = await prisma.tag.findMany();
+    const tags = await prisma.tag.findMany({
+      where: {
+        ...where,
+      },
+      take: tagsPerPage,
+    });
 
     res.status(200).json({ tags });
   } catch (error) {

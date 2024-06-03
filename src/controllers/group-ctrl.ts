@@ -137,19 +137,20 @@ export const getGroupsForDropdown = async (
   req: TypedRequestQuery<typeof groupDropdownSchema>,
   res: Response
 ) => {
-  const name = req.query.name;
+  const name = req.query.name?.trim();
+  const groupsPerPage = 3;
 
   let where: { [key: string]: any } = {};
 
-  if (name?.trim() !== '')
-    where = { ...where, name: { contains: name?.trim(), mode: 'insensitive' } };
+  if (name && name.length > 1)
+    where = { ...where, name: { contains: name, mode: 'insensitive' } };
 
   try {
     const groups = await prisma.group.findMany({
       where: {
         ...where,
       },
-      take: 10,
+      take: groupsPerPage,
     });
 
     const modifiedGroups = groups.map(({ id, name, bio, profileImage }) => ({
