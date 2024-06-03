@@ -3,7 +3,7 @@ import { idSchema, pageNumberSchema } from '@/lib/zod/common';
 
 import {
   createGroupSchema,
-  groupNameQuery,
+  groupDropdownSchema,
   updateGroupSchema,
 } from '@/lib/zod/group';
 import { Role } from '@prisma/client';
@@ -29,7 +29,6 @@ export const createGroup = async (
   res: Response
 ) => {
   const { authorId, members, name, bio, coverImage, profileImage } = req.body;
-  // const groupId = uuidv4();
 
   const newMembers =
     members?.filter((member) => member.userId !== authorId) || [];
@@ -79,8 +78,6 @@ export const updateGroup = async (
         bio,
       },
     });
-
-    console.log('updatedGroup', updatedGroup);
 
     res.status(200).json({ group: updatedGroup });
   } catch (error) {
@@ -137,19 +134,22 @@ export const getAllGroups = async (
 };
 
 export const getGroupsForDropdown = async (
-  req: TypedRequestQuery<typeof groupNameQuery>,
+  req: TypedRequestQuery<typeof groupDropdownSchema>,
   res: Response
 ) => {
   const name = req.query.name;
 
+  let where: { [key: string]: any } = {};
+
+  if (name?.trim() !== '')
+    where = { ...where, name: { contains: name?.trim(), mode: 'insensitive' } };
+
   try {
     const groups = await prisma.group.findMany({
       where: {
-        name: {
-          contains: name?.trim(),
-          mode: 'insensitive',
-        },
+        ...where,
       },
+      take: 10,
     });
 
     const modifiedGroups = groups.map(({ id, name, bio, profileImage }) => ({

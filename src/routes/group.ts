@@ -7,7 +7,7 @@ import {
 import { idSchema } from '@/lib/zod/common';
 import {
   createGroupSchema,
-  groupNameQuery,
+  groupDropdownSchema,
   updateGroupSchema,
 } from '@/lib/zod/group';
 import {
@@ -25,7 +25,7 @@ groupRoutes.get('/', getAllGroups);
 
 groupRoutes.get(
   '/content-create',
-  validateReqQuery(groupNameQuery),
+  validateReqQuery(groupDropdownSchema),
   getGroupsForDropdown
 );
 

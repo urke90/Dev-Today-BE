@@ -18,8 +18,9 @@ const membersSchema = z.object({
   role: z.nativeEnum(Role),
 });
 
-export const groupNameQuery = z.object({
+export const groupDropdownSchema = z.object({
   name: z.string().trim().optional(),
+  page: z.string().trim().optional(),
 });
 
 /************************************************************ GROUP *******************************************************************/

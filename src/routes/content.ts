@@ -3,7 +3,6 @@ import {
   createPodcast,
   createPost,
   getContent,
-  getContentTags,
   getTags,
   updateMeetup,
   updatePodcast,
@@ -34,11 +33,9 @@ import express from 'express';
 
 export const contentRoutes = express.Router();
 
-contentRoutes.get('/tags', getTags);
-
 contentRoutes.get('/', validateReqQuery(allContentQuerySchema), getContent);
 
-contentRoutes.get('/:id/tags', validateReqParams(idSchema), getContentTags);
+contentRoutes.get('/:id/tags', validateReqParams(idSchema), getTags);
 
 /***************************************************************** CREATE ********************************************************** */
 
