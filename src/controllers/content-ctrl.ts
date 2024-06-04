@@ -47,7 +47,7 @@ export const getContent = async (
   }
 
   try {
-    const content = await prisma.content.findMany({
+    const fetchedContent = await prisma.content.findMany({
       where: {
         type,
       },
@@ -58,10 +58,10 @@ export const getContent = async (
       take: itemsPerPage,
     });
 
-    let modifiedContent = [];
+    let content = [];
 
     if (type === EContentType.POST) {
-      modifiedContent = content.map(
+      content = fetchedContent.map(
         ({
           id,
           title,
@@ -87,7 +87,7 @@ export const getContent = async (
         })
       );
     } else if (type === EContentType.MEETUP) {
-      modifiedContent = content.map(
+      content = fetchedContent.map(
         ({
           id,
           title,
@@ -107,7 +107,7 @@ export const getContent = async (
         })
       );
     } else {
-      modifiedContent = content.map(
+      content = fetchedContent.map(
         ({
           id,
           title,
@@ -128,7 +128,7 @@ export const getContent = async (
       );
     }
 
-    res.status(200).json({ content: modifiedContent });
+    res.status(200).json(content);
   } catch (error) {
     console.log('Error fetching content');
     res.status(500).json({ message: 'Internal server error!' });
@@ -162,9 +162,7 @@ export const getContentById = async (
     res.status(200).json(content);
   } catch (error) {
     console.log('Error fething tags', error);
-    res
-      .status(500)
-      .json({ message: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' });
+    res.status(500).json({ message: 'Internal server error!' });
   }
 };
 
@@ -194,12 +192,10 @@ export const getAllTags = async (
       take: tagsPerPage,
     });
 
-    res.status(200).json({ tags });
+    res.status(200).json(tags);
   } catch (error) {
     console.log('Error fething tags', error);
-    res
-      .status(500)
-      .json({ message: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' });
+    res.status(500).json({ message: 'Internal server error!' });
   }
 };
 
@@ -234,7 +230,7 @@ export const createPost = async (
       },
     });
 
-    res.status(201).json({ post });
+    res.status(201).json(post);
   } catch (error) {
     console.log('Error creating post', error);
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -288,7 +284,7 @@ export const createMeetup = async (
       },
     });
 
-    res.status(201).json({ meetup });
+    res.status(201).json(meetup);
   } catch (error) {
     console.log('Error creating meetup', error);
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -340,7 +336,7 @@ export const createPodcast = async (
       },
     });
 
-    res.status(201).json({ podcast });
+    res.status(201).json(podcast);
   } catch (error) {
     console.log('Error creating podcast', error);
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -383,9 +379,8 @@ export const updatePost = async (
         },
       },
     });
-    console.log('post', post);
 
-    res.status(201).json({ post });
+    res.status(201).json(post);
   } catch (error) {
     console.log('Error updating post', error);
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -436,9 +431,8 @@ export const updateMeetup = async (
         meetupLocation,
       },
     });
-    console.log('meetup', meetup);
 
-    res.status(201).json({ meetup });
+    res.status(201).json(meetup);
   } catch (error) {
     console.log('Error updating meetup', error);
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -483,7 +477,7 @@ export const updatePodcast = async (
     });
     console.log('content', podcast);
 
-    res.status(201).json({ podcast });
+    res.status(201).json(podcast);
   } catch (error) {
     console.log('Error updating podcast', error);
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
