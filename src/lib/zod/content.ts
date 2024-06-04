@@ -96,11 +96,11 @@ const contentCreateBaseSchema = z.object({
   comments: z.array(commentsSchema).optional(),
 });
 
-export const createPostSchema = contentCreateBaseSchema.extend({
+export const postSchema = contentCreateBaseSchema.extend({
   type: z.literal(EContentType.POST),
 });
 
-export const createMeetupSchema = contentCreateBaseSchema.extend({
+export const meetupSchema = contentCreateBaseSchema.extend({
   type: z.literal(EContentType.MEETUP),
   meetupLocation: z
     .string()
@@ -113,7 +113,7 @@ export const createMeetupSchema = contentCreateBaseSchema.extend({
   }),
 });
 
-export const createPodcastSchema = contentCreateBaseSchema.extend({
+export const podcastSchema = contentCreateBaseSchema.extend({
   type: z.literal(EContentType.PODCAST),
   podcastFile: z.string().trim().url('Please provide valid URL!'),
   podcastTitle: z
@@ -125,45 +125,45 @@ export const createPodcastSchema = contentCreateBaseSchema.extend({
 /***************************************************************** CREATE ***********************************************************/
 
 /***************************************************************** UPDATE ***********************************************************/
-const contentUpdateBaseSchema = z.object({
-  title: z
-    .string()
-    .trim()
-    .min(2, 'Title must be at least 2 characters long!')
-    .optional(),
-  description: z
-    .string()
-    .trim()
-    .min(3, 'Description must be at least 3 characters long!')
-    .optional(),
-  coverImage: z.string().trim().url().optional(),
-  tags: z
-    .array(z.string().min(1, 'Tag must be at least 1 character long!'))
-    .optional(),
-  comments: z.array(commentsSchema).optional(),
-});
-export const updatePostSchema = contentUpdateBaseSchema.extend({});
+// const contentUpdateBaseSchema = z.object({
+//   title: z
+//     .string()
+//     .trim()
+//     .min(2, 'Title must be at least 2 characters long!')
+//     .optional(),
+//   description: z
+//     .string()
+//     .trim()
+//     .min(3, 'Description must be at least 3 characters long!')
+//     .optional(),
+//   coverImage: z.string().trim().url().optional(),
+//   tags: z
+//     .array(z.string().min(1, 'Tag must be at least 1 character long!'))
+//     .optional(),
+//   comments: z.array(commentsSchema).optional(),
+// });
+// export const updatePostSchema = contentUpdateBaseSchema.extend({});
 
-export const updateMeetupSchema = contentUpdateBaseSchema.extend({
-  meetupLocation: z
-    .string()
-    .trim()
-    .min(3, 'Location must be at least 3 characters long!')
-    .optional(),
-  meetupLocationImage: z.string().trim().url().optional(),
-  meetupDate: z.coerce
-    .date({
-      required_error: 'Date is required!',
-      invalid_type_error: 'Invalid date format!',
-    })
-    .optional(),
-});
+// export const updateMeetupSchema = contentUpdateBaseSchema.extend({
+//   meetupLocation: z
+//     .string()
+//     .trim()
+//     .min(3, 'Location must be at least 3 characters long!')
+//     .optional(),
+//   meetupLocationImage: z.string().trim().url().optional(),
+//   meetupDate: z.coerce
+//     .date({
+//       required_error: 'Date is required!',
+//       invalid_type_error: 'Invalid date format!',
+//     })
+//     .optional(),
+// });
 
-export const updatePodcastSchema = contentUpdateBaseSchema.extend({
-  podcastFile: z.string().trim().url('Please provide valid URL!').optional(),
-  podcastTitle: z
-    .string()
-    .trim()
-    .min(2, 'Title must be at least 2 characters long!')
-    .optional(),
-});
+// export const updatePodcastSchema = contentUpdateBaseSchema.extend({
+//   podcastFile: z.string().trim().url('Please provide valid URL!').optional(),
+//   podcastTitle: z
+//     .string()
+//     .trim()
+//     .min(2, 'Title must be at least 2 characters long!')
+//     .optional(),
+// });

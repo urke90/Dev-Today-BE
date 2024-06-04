@@ -11,12 +11,15 @@ import {
 import { idSchema } from '@/lib/zod/common';
 import {
   allContentQuerySchema,
-  createMeetupSchema,
-  createPodcastSchema,
-  createPostSchema,
-  updateMeetupSchema,
-  updatePodcastSchema,
-  updatePostSchema,
+  meetupSchema,
+  podcastSchema,
+  // createMeetupSchema,
+  // createPodcastSchema,
+  // createPostSchema,
+  // updateMeetupSchema,
+  // updatePodcastSchema,
+  // updatePostSchema,
+  postSchema,
 } from '@/lib/zod/content';
 import {
   validateReqBody,
@@ -39,19 +42,11 @@ contentRoutes.get('/tags', getAllTags);
 
 /***************************************************************** CREATE ********************************************************** */
 
-contentRoutes.post('/post', validateReqBody(createPostSchema), createPost);
+contentRoutes.post('/post', validateReqBody(postSchema), createPost);
 
-contentRoutes.post(
-  '/meetup',
-  validateReqBody(createMeetupSchema),
-  createMeetup
-);
+contentRoutes.post('/meetup', validateReqBody(meetupSchema), createMeetup);
 
-contentRoutes.post(
-  '/podcast',
-  validateReqBody(createPodcastSchema),
-  createPodcast
-);
+contentRoutes.post('/podcast', validateReqBody(podcastSchema), createPodcast);
 
 /***************************************************************** CREATE ********************************************************** */
 
@@ -60,21 +55,21 @@ contentRoutes.post(
 contentRoutes.patch(
   '/post/:id',
   validateReqParams(idSchema),
-  validateReqBody(updatePostSchema),
+  validateReqBody(postSchema),
   updatePost
 );
 
 contentRoutes.patch(
   '/meetup/:id',
   validateReqParams(idSchema),
-  validateReqBody(updateMeetupSchema),
+  validateReqBody(meetupSchema),
   updateMeetup
 );
 
 contentRoutes.patch(
   '/podcast/:id',
   validateReqParams(idSchema),
-  validateReqBody(updatePodcastSchema),
+  validateReqBody(podcastSchema),
   updatePodcast
 );
 
