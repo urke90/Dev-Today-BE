@@ -148,7 +148,14 @@ export const getContentById = async (
       },
       include: {
         tags: true,
-        group: true,
+        group: {
+          select: {
+            coverImage: true,
+            name: true,
+            bio: true,
+            id: true,
+          },
+        },
       },
     });
 
