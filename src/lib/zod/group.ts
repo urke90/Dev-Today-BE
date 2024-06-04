@@ -22,6 +22,11 @@ export const groupDropdownSchema = z.object({
   name: z.string().trim().optional(),
 });
 
+export const getAllGroupsSchema = z.object({
+  page: z.coerce.number().optional(),
+  q: z.string().trim().optional(),
+});
+
 /************************************************************ GROUP *******************************************************************/
 
 export const createGroupSchema = z.object({

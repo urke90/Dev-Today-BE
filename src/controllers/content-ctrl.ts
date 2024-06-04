@@ -475,7 +475,6 @@ export const updatePodcast = async (
         podcastTitle,
       },
     });
-    console.log('content', podcast);
 
     res.status(201).json(podcast);
   } catch (error) {

@@ -1,9 +1,9 @@
 import { Prisma, prisma } from '@/database/prisma-client';
-import { idSchema, pageNumberSchema } from '@/lib/zod/common';
+import { idSchema } from '@/lib/zod/common';
 
 import {
   createGroupSchema,
-  groupDropdownSchema,
+  getAllGroupsSchema,
   updateGroupSchema,
 } from '@/lib/zod/group';
 import { Role } from '@prisma/client';
@@ -92,14 +92,22 @@ export const updateGroup = async (
 };
 
 export const getAllGroups = async (
-  req: TypedRequestQuery<typeof pageNumberSchema>,
+  req: TypedRequestQuery<typeof getAllGroupsSchema>,
   res: Response
 ) => {
   const page = req.query.page ?? 1;
+  const q = req.query.q;
   const groupsPerPage = 4;
+
+  let where: { [key: string]: any } = {};
+
+  if (q && q?.length > 0) {
+    where = { ...where, name: { contains: q, mode: 'insensitive' } };
+  }
 
   try {
     const groups = await prisma.group.findMany({
+      where,
       include: {
         members: {
           select: {
@@ -133,36 +141,36 @@ export const getAllGroups = async (
   }
 };
 
-export const getGroupsForDropdown = async (
-  req: TypedRequestQuery<typeof groupDropdownSchema>,
-  res: Response
-) => {
-  const name = req.query.name?.trim();
-  const groupsPerPage = 3;
+// export const getGroupsForDropdown = async (
+//   req: TypedRequestQuery<typeof groupDropdownSchema>,
+//   res: Response
+// ) => {
+//   const name = req.query.name?.trim();
+//   const groupsPerPage = 3;
 
-  let where: { [key: string]: any } = {};
+//   let where: { [key: string]: any } = {};
 
-  if (name && name.length > 1)
-    where = { ...where, name: { contains: name, mode: 'insensitive' } };
+//   if (name && name.length > 1)
+//     where = { ...where, name: { contains: name, mode: 'insensitive' } };
 
-  try {
-    const groups = await prisma.group.findMany({
-      where: {
-        ...where,
-      },
-      take: groupsPerPage,
-    });
+//   try {
+//     const groups = await prisma.group.findMany({
+//       where: {
+//         ...where,
+//       },
+//       take: groupsPerPage,
+//     });
 
-    const modifiedGroups = groups.map(({ id, name, bio, profileImage }) => ({
-      id,
-      name,
-      profileImage,
-      bio,
-    }));
+//     const modifiedGroups = groups.map(({ id, name, bio, profileImage }) => ({
+//       id,
+//       name,
+//       profileImage,
+//       bio,
+//     }));
 
-    res.status(200).json({ groups: modifiedGroups });
-  } catch (error) {
-    console.log('Error getting groups', error);
-    res.status(500).json({ message: 'Internal server error!' });
-  }
-};
+//     res.status(200).json({ groups: modifiedGroups });
+//   } catch (error) {
+//     console.log('Error getting groups', error);
+//     res.status(500).json({ message: 'Internal server error!' });
+//   }
+// };
