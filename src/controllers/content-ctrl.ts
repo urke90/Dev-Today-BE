@@ -1,18 +1,16 @@
 import { idSchema } from '@/lib/zod/common';
 import {
   allContentQuerySchema,
-  createMeetupSchema,
-  createPodcastSchema,
-  createPostSchema,
+  meetupSchema,
+  podcastSchema,
+  postSchema,
   tagsTitleSchema,
-  updateMeetupSchema,
-  updatePodcastSchema,
-  updatePostSchema,
 } from '@/lib/zod/content';
 import type { Response } from 'express';
 import type {
   TypedRequest,
   TypedRequestBody,
+  TypedRequestParams,
   TypedRequestQuery,
 } from 'zod-express-middleware';
 
@@ -137,6 +135,31 @@ export const getContent = async (
   }
 };
 
+export const getContentById = async (
+  req: TypedRequestParams<typeof idSchema>,
+  res: Response
+) => {
+  const id = req.params.id;
+
+  try {
+    const content = await prisma.content.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        tags: true,
+      },
+    });
+
+    res.status(200).json({ content });
+  } catch (error) {
+    console.log('Error fething tags', error);
+    res
+      .status(500)
+      .json({ message: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' });
+  }
+};
+
 export const getAllTags = async (
   req: TypedRequestQuery<typeof tagsTitleSchema>,
   res: Response
@@ -175,7 +198,7 @@ export const getAllTags = async (
 /***************************************************************** CREATE ********************************************************** */
 
 export const createPost = async (
-  req: TypedRequestBody<typeof createPostSchema>,
+  req: TypedRequestBody<typeof postSchema>,
   res: Response
 ) => {
   const { description, groupId, title, type, coverImage, tags, authorId } =
@@ -216,7 +239,7 @@ export const createPost = async (
 };
 
 export const createMeetup = async (
-  req: TypedRequestBody<typeof createMeetupSchema>,
+  req: TypedRequestBody<typeof meetupSchema>,
   res: Response
 ) => {
   const {
@@ -270,7 +293,7 @@ export const createMeetup = async (
 };
 
 export const createPodcast = async (
-  req: TypedRequestBody<typeof createPodcastSchema>,
+  req: TypedRequestBody<typeof podcastSchema>,
   res: Response
 ) => {
   const {
@@ -325,7 +348,7 @@ export const createPodcast = async (
 
 /***************************************************************** UPDATE ***********************************************************/
 export const updatePost = async (
-  req: TypedRequest<typeof idSchema, any, typeof updatePostSchema>,
+  req: TypedRequest<typeof idSchema, any, typeof postSchema>,
   res: Response
 ) => {
   const id = req.params.id;
@@ -367,7 +390,7 @@ export const updatePost = async (
 };
 
 export const updateMeetup = async (
-  req: TypedRequest<typeof idSchema, any, typeof updateMeetupSchema>,
+  req: TypedRequest<typeof idSchema, any, typeof meetupSchema>,
   res: Response
 ) => {
   const id = req.params.id;
@@ -420,7 +443,7 @@ export const updateMeetup = async (
 };
 
 export const updatePodcast = async (
-  req: TypedRequest<typeof idSchema, any, typeof updatePodcastSchema>,
+  req: TypedRequest<typeof idSchema, any, typeof podcastSchema>,
   res: Response
 ) => {
   const id = req.params.id;
