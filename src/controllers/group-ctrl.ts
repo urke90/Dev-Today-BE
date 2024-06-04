@@ -95,45 +95,47 @@ export const getAllGroups = async (
   req: TypedRequestQuery<typeof getAllGroupsSchema>,
   res: Response
 ) => {
-  const page = req.query.page ?? 1;
-  const q = req.query.q;
+  const { page, q, member } = req.query;
+
   const groupsPerPage = 4;
+  const currentPage = page ?? 1;
 
   let where: { [key: string]: any } = {};
+  let include: { [key: string]: any } = {};
 
   if (q && q?.length > 0) {
     where = { ...where, name: { contains: q, mode: 'insensitive' } };
   }
 
+  if (member) {
+    include = {
+      members: {
+        select: {
+          user: {
+            select: {
+              avatarImg: true,
+            },
+          },
+          take: 4,
+        },
+      },
+      _count: {
+        select: {
+          members: true,
+        },
+      },
+    };
+  }
+
   try {
     const groups = await prisma.group.findMany({
       where,
-      include: {
-        members: {
-          select: {
-            user: {
-              select: {
-                avatarImg: true,
-              },
-            },
-          },
-        },
-      },
+      include,
       take: 4,
-      skip: (page - 1) * groupsPerPage,
+      skip: (currentPage - 1) * groupsPerPage,
     });
 
-    const modifiedGroups = groups.map(
-      ({ coverImage, name, id, members, bio }) => ({
-        id,
-        coverImage,
-        name,
-        bio,
-        members,
-      })
-    );
-
-    res.status(200).json({ groups: modifiedGroups });
+    res.status(200).json(groups);
   } catch (error) {
     console.log('Error getting groups', error);
 
