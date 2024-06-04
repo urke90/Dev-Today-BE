@@ -148,10 +148,11 @@ export const getContentById = async (
       },
       include: {
         tags: true,
+        group: true,
       },
     });
 
-    res.status(200).json({ content });
+    res.status(200).json(content);
   } catch (error) {
     console.log('Error fething tags', error);
     res
