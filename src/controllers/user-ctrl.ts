@@ -11,6 +11,7 @@ import {
   paramsIdSchema,
   profileSchema,
   registerSchema,
+  userIdSchema,
 } from '@/lib/zod/user';
 import { IGroup, IGroupContent, IGroupMember } from '@/types/group';
 import { excludeField, excludeProperty } from '@/utils/prisma-functions';
@@ -221,10 +222,12 @@ export const updateUserOnboarding = async (
 };
 
 export const followUser = async (
-  req: TypedRequest<typeof paramsIdSchema, any, typeof profileSchema>,
+  req: TypedRequest<typeof paramsIdSchema, any, typeof userIdSchema>,
   res: Response
 ) => {
+  // id is the person we want to follow
   const { id } = req.params;
+  // userId is viewerID (user loged in)
   const { userId } = req.body;
 
   try {
@@ -253,6 +256,7 @@ export const followUser = async (
     const followersCount = await prisma.followers.count({
       where: { followingId: id },
     });
+
     const followingCount = await prisma.followers.count({
       where: { followerId: id },
     });
@@ -278,12 +282,12 @@ export const createLike = async (
   const { contentId } = req.body;
   try {
     const existingLike = await prisma.like.findUnique({
-      where: { userId_contentId: { userId: id, contentId } },
+      where: { userId_contentId: { userId: id!, contentId } },
     });
     if (existingLike) {
       await prisma.$transaction([
         prisma.like.delete({
-          where: { userId_contentId: { userId: id, contentId } },
+          where: { userId_contentId: { userId: id!, contentId } },
         }),
         prisma.content.update({
           where: { id: contentId },
@@ -299,7 +303,7 @@ export const createLike = async (
       await prisma.$transaction([
         prisma.like.create({
           data: {
-            userId: id,
+            userId: id!,
             contentId,
           },
         }),
@@ -325,14 +329,24 @@ export const getUserById = async (
   req: TypedRequest<typeof paramsIdSchema, typeof profileSchema, any>,
   res: Response
 ) => {
+  // User profile viewed
   const id = req.params.id;
   const userId = req.query.userId;
   try {
     const user = await prisma.user.findUnique({
       where: { id },
       include: {
-        followers: true,
-        following: true,
+        followers: {
+          where: {
+            followerId: userId,
+          },
+        },
+        _count: {
+          select: {
+            followers: true,
+            following: true,
+          },
+        },
         contents: {
           select: {
             id: true,
@@ -361,12 +375,12 @@ export const getUserById = async (
 
     let isFollowing = false;
     user.followers.forEach((follower) => {
-      if (follower.followingId === userId) {
+      if (follower.followerId === userId) {
         isFollowing = true;
       }
     });
 
-    res.status(200).json({ user, isFollowing });
+    res.status(200).json({ user, isFollowing: user.followers.length > 0 });
   } catch (error) {
     console.log('Error fetching user by id', error);
     res
@@ -374,6 +388,7 @@ export const getUserById = async (
       .json({ message: 'Oops! An internal server error occurred on our end.' });
   }
 };
+
 export const getUserContent = async (
   req: TypedRequest<
     typeof paramsIdSchema,

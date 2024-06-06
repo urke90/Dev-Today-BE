@@ -21,6 +21,7 @@ import {
   // updatePodcastSchema,
   // updatePostSchema,
   postSchema,
+  tagsTitleSchema,
 } from '@/lib/zod/content';
 import {
   validateReqBody,
@@ -39,9 +40,9 @@ export const contentRoutes = express.Router();
 
 contentRoutes.get('/', validateReqQuery(allContentQuerySchema), getContent);
 
-contentRoutes.get('/:id', validateReqParams(idSchema), getContentById);
+contentRoutes.get('/tags', validateReqQuery(tagsTitleSchema), getAllTags);
 
-contentRoutes.get('/tags', getAllTags);
+contentRoutes.get('/:id', validateReqParams(idSchema), getContentById);
 
 /***************************************************************** CREATE ********************************************************** */
 

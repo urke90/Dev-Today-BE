@@ -4,15 +4,23 @@ import {
   updateGroup,
 } from '@/controllers/group-ctrl';
 import { idSchema } from '@/lib/zod/common';
-import { createGroupSchema, updateGroupSchema } from '@/lib/zod/group';
-import { validateReqBody, validateReqParams } from '@/utils/middlewares';
+import {
+  createGroupSchema,
+  getAllGroupsSchema,
+  updateGroupSchema,
+} from '@/lib/zod/group';
+import {
+  validateReqBody,
+  validateReqParams,
+  validateReqQuery,
+} from '@/utils/middlewares';
 import express from 'express';
 
 // ----------------------------------------------------------------
 
 export const groupRoutes = express.Router();
 
-groupRoutes.get('/', getAllGroups);
+groupRoutes.get('/', validateReqQuery(getAllGroupsSchema), getAllGroups);
 
 groupRoutes.post('/', validateReqBody(createGroupSchema), createGroup);
 

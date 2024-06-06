@@ -103,7 +103,7 @@ export const getAllGroups = async (
   let where: { [key: string]: any } = {};
   let include: { [key: string]: any } = {};
 
-  if (q && q?.length > 0) {
+  if (q?.trim() !== '') {
     where = { ...where, name: { contains: q, mode: 'insensitive' } };
   }
 

@@ -28,6 +28,7 @@ import {
   paramsIdSchema,
   profileSchema,
   registerSchema,
+  userIdSchema,
 } from '@/lib/zod/user';
 import {
   validateReqBody,
@@ -68,8 +69,8 @@ userRoutes.get(
 
 userRoutes.post(
   '/:id/follow',
-  validateReqBody(paramsIdSchema),
-  validateReqBody(profileSchema),
+  validateReqParams(paramsIdSchema),
+  validateReqBody(userIdSchema),
   followUser
 );
 

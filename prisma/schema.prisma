@@ -36,8 +36,8 @@ model User {
   linkedinLink          String?
   twitterName           String?
   twitterLink           String?
-  followers             Followers[] @relation("follower")
-  following             Followers[] @relation("following")
+  followers             Followers[] @relation("following")
+  following             Followers[] @relation("follower")
   comments              Comment[]
   likedComments         Comment[]   @relation("CommentLikes")
   ownedGroups           Group[]     @relation("GroupAuthor")

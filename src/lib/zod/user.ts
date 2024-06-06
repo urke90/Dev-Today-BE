@@ -42,11 +42,24 @@ export const onboardingSchema = z.object({
 });
 
 export const paramsIdSchema = z.object({
-  id: z.string().trim().length(36),
+  id: z
+    .string()
+    .trim()
+    .uuid()
+    .length(36, 'ID must be exactly 36 characters long!'),
+  // .optional(),
 });
 
 export const paramsEmailSchema = z.object({
   email: z.string().trim().email(),
+});
+
+export const userIdSchema = z.object({
+  userId: z
+    .string()
+    .trim()
+    .uuid()
+    .length(36, 'ID must be exactly 36 characters long!'),
 });
 
 export const profileSchema = z.object({

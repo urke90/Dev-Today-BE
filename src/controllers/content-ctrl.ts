@@ -170,12 +170,12 @@ export const getAllTags = async (
   req: TypedRequestQuery<typeof tagsTitleSchema>,
   res: Response
 ) => {
-  const title = req.query.title?.trim();
+  const title = req.query.title;
   const tagsPerPage = 3;
 
   let where: { [ket: string]: any } = {};
 
-  if (title && title?.length > 1) {
+  if (title?.trim() !== '') {
     where = {
       title: {
         contains: title,
@@ -186,9 +186,7 @@ export const getAllTags = async (
 
   try {
     const tags = await prisma.tag.findMany({
-      where: {
-        ...where,
-      },
+      where,
       take: tagsPerPage,
     });
 
