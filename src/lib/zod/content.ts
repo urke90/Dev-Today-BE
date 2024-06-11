@@ -27,26 +27,19 @@ import z from 'zod';
  * 9. comments: IContent
  */
 
-/**
- * CONTENT CREATE
- * ruta za search grupe, fitler je na BE, implementirati debouncing na FE
- */
-
-/**
- * GROUPS CREATE
- */
-
 export const contentTypeSchema = z.object({
   type: z.nativeEnum(EContentTypeLowercase),
 });
 
 export const allContentQuerySchema = z.object({
-  type: z.enum(['post', 'meetup', 'podcast']),
-  page: z.string().optional(),
+  type: z.nativeEnum(EContentTypeLowercase),
+  page: z.string().trim().optional(),
+  limit: z.string().trim().optional(),
 });
 
 export const tagsTitleSchema = z.object({
   title: z.string().trim().optional(),
+  limit: z.string().trim().optional(),
 });
 
 export const commentsSchema = z.object({
@@ -125,6 +118,8 @@ export const podcastSchema = contentCreateBaseSchema.extend({
 /***************************************************************** CREATE ***********************************************************/
 
 /***************************************************************** UPDATE ***********************************************************/
+
+// ! Reused create schemas. Left this just in case we need it later.
 // const contentUpdateBaseSchema = z.object({
 //   title: z
 //     .string()

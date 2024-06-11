@@ -95,10 +95,10 @@ export const getAllGroups = async (
   req: TypedRequestQuery<typeof getAllGroupsSchema>,
   res: Response
 ) => {
-  const { page, q, member } = req.query;
-
-  const groupsPerPage = 4;
-  const currentPage = page ?? 1;
+  const groupsPerPage = req.query.limit ? Number(req.query.limit) : 4;
+  const page = req.query.page ? Number(req.query.page) : 1;
+  const q = req.query.q;
+  const member = req.query.member;
 
   let where: { [key: string]: any } = {};
   let include: { [key: string]: any } = {};
@@ -132,7 +132,7 @@ export const getAllGroups = async (
       where,
       include,
       take: 4,
-      skip: (currentPage - 1) * groupsPerPage,
+      skip: (page - 1) * groupsPerPage,
     });
 
     res.status(200).json(groups);

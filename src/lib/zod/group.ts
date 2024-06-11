@@ -26,6 +26,7 @@ export const getAllGroupsSchema = z.object({
   page: z.coerce.number().optional(),
   q: z.string().trim().optional(),
   member: z.coerce.boolean().optional(),
+  limit: z.coerce.number().optional(),
 });
 
 /************************************************************ GROUP *******************************************************************/

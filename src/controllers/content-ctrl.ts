@@ -19,16 +19,13 @@ import { EContentType } from '@prisma/client';
 
 // ----------------------------------------------------------------
 
-// grupe vracam 3 i na 2 chars aktivira search
-// tags neka vrati 3 i aktivira search na 2
-
 export const getContent = async (
   req: TypedRequestQuery<typeof allContentQuerySchema>,
   res: Response
 ) => {
   const type = (req.query.type as string)?.toUpperCase() as EContentType;
   const page = req.query.page ? Number(req.query.page) : 1;
-  const itemsPerPage = 4;
+  const limit = req.query.limit ? Number(req.query.limit) : 4;
 
   let include: { [key: string]: any } = {
     tags: true,
@@ -54,8 +51,8 @@ export const getContent = async (
       include: {
         ...include,
       },
-      skip: (page - 1) * itemsPerPage,
-      take: itemsPerPage,
+      skip: (page - 1) * limit,
+      take: limit,
     });
 
     let content = [];
@@ -108,21 +105,13 @@ export const getContent = async (
       );
     } else {
       content = fetchedContent.map(
-        ({
+        ({ id, title, description, coverImage, tags, author, createdAt }) => ({
           id,
           title,
           description,
           coverImage,
           tags,
-          //  author,
-          createdAt,
-        }) => ({
-          id,
-          title,
-          description,
-          coverImage,
-          tags,
-          // author,
+          author,
           createdAt,
         })
       );
@@ -171,7 +160,7 @@ export const getAllTags = async (
   res: Response
 ) => {
   const title = req.query.title;
-  const tagsPerPage = 3;
+  const limit = req.query.limit ? Number(req.query.limit) : 4;
 
   let where: { [ket: string]: any } = {};
 
@@ -187,7 +176,7 @@ export const getAllTags = async (
   try {
     const tags = await prisma.tag.findMany({
       where,
-      take: tagsPerPage,
+      take: limit,
     });
 
     res.status(200).json(tags);
@@ -488,6 +477,7 @@ export const updatePodcast = async (
 
 /***************************************************************** UPDATE ***********************************************************/
 
+// ! getContent replaced this code ===> Left this just in case we need it later ( )
 // export const getPosts = async (req: Request, res: Response) => {
 //   try {
 //     const content = await prisma.content.findMany({
