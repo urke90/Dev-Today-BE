@@ -115,3 +115,8 @@ export const getUserContentTypeSchema = z.object({
 export const getUserGroupSchema = z.object({
   page: z.coerce.number().default(1).optional(),
 });
+
+export const getAllUsersSchema = z.object({
+  limit: z.string().trim().optional(),
+  q: z.string().trim().optional(),
+});

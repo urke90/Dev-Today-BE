@@ -1,6 +1,7 @@
 import { Prisma, prisma } from '@/database/prisma-client';
 import {
   createLikeSchema,
+  getAllUsersSchema,
   getUserContentSchema,
   getUserContentTypeSchema,
   getUserGroupSchema,
@@ -18,9 +19,10 @@ import { excludeField, excludeProperty } from '@/utils/prisma-functions';
 import { EContentType } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { compare, genSalt, hash } from 'bcrypt';
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
 import {
   TypedRequest,
+  TypedRequestQuery,
   type TypedRequestBody,
   type TypedRequestParams,
 } from 'zod-express-middleware';
@@ -50,10 +52,53 @@ export const getUserByEmail = async (
   }
 };
 
-export const getAllUsers = async (req: Request, res: Response) => {
-  res.status(200).json({
-    message: 'Get all users!',
-  });
+export const getAllUsers = async (
+  req: TypedRequestQuery<typeof getAllUsersSchema>,
+  res: Response
+) => {
+  const limit = req.query.limit ? Number(req.query.limit) : 4;
+  const q = req.query.q || '';
+
+  let where: { [key: string]: any } = {};
+
+  if (q.trim() !== '') {
+    where = {
+      OR: [
+        {
+          userName: {
+            contains: q,
+            mode: 'insensitive',
+          },
+        },
+        {
+          name: {
+            contains: q,
+            mode: 'insensitive',
+          },
+        },
+      ],
+    };
+  }
+
+  try {
+    const fetchedUsers = await prisma.user.findMany({
+      where,
+      take: limit,
+    });
+
+    const users = fetchedUsers.map(({ avatarImg, userName, id }) => ({
+      id,
+      userName,
+      avatarImg,
+    }));
+
+    res.status(200).json(users);
+  } catch (error) {
+    console.log('Error fetching user with email', error);
+    res.status(500).json({
+      message: 'Internal server error.',
+    });
+  }
 };
 
 export const registerUser = async (
