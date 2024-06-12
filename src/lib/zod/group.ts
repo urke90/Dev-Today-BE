@@ -9,12 +9,6 @@ const membersSchema = z.object({
     .trim()
     .uuid('User ID must be unique and uuid')
     .length(36, 'Author ID must have 36 characters exactly'),
-  groupId: z
-    .string()
-    .trim()
-    .uuid('Group ID must be unique and uuid')
-    .length(36, 'Author ID must have 36 characters exactly')
-    .optional(),
   role: z.nativeEnum(Role),
 });
 
