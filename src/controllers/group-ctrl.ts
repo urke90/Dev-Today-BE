@@ -4,6 +4,7 @@ import { idSchema } from '@/lib/zod/common';
 import {
   createGroupSchema,
   getAllGroupsSchema,
+  getGroupByIdSchema,
   updateGroupSchema,
 } from '@/lib/zod/group';
 import { Role } from '@prisma/client';
@@ -128,16 +129,52 @@ export const getAllGroups = async (
   }
 
   try {
+    const totalGroups = await prisma.group.count();
+    const totalPages = Math.ceil(totalGroups / groupsPerPage);
+    const hasNextPage = page < totalPages;
+
     const groups = await prisma.group.findMany({
       where,
       include,
-      take: 4,
+      take: groupsPerPage,
       skip: (page - 1) * groupsPerPage,
     });
 
-    res.status(200).json(groups);
+    res.status(200).json({ groups, totalPages, hasNextPage });
   } catch (error) {
     console.log('Error getting groups', error);
+
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
+
+export const getGroupById = async (
+  req: TypedRequest<typeof idSchema, typeof getGroupByIdSchema, any>,
+  res: Response
+) => {
+  const id = req.params.id;
+  const members = req.query.members;
+
+  let include: { [key: string]: any } = {};
+
+  if (members === 'true') {
+    include = {
+      ...include,
+      members: true,
+    };
+  }
+
+  try {
+    const group = await prisma.group.findUnique({
+      where: {
+        id,
+      },
+      include,
+    });
+
+    res.status(200).json(group);
+  } catch (error) {
+    console.log('Error getting group', error);
 
     res.status(500).json({ message: 'Internal server error!' });
   }

@@ -77,3 +77,7 @@ export const updateGroupSchema = z.object({
 });
 
 /************************************************************ GROUP *******************************************************************/
+
+export const getGroupByIdSchema = z.object({
+  members: z.literal('true').optional(),
+});
