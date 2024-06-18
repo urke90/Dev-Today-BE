@@ -397,7 +397,7 @@ export const getUserById = async (
             id: true,
             author: {
               select: {
-                name: true,
+                userName: true,
                 avatarImg: true,
               },
             },

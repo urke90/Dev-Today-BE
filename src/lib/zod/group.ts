@@ -80,8 +80,9 @@ export const updateGroupSchema = z.object({
 
 export const getGroupByIdSchema = z.object({
   members: z.literal('true').optional(),
-  recentMeetups: z.literal('true').optional(),
   stats: z.literal('true').optional(),
+  meetups: z.literal('true').optional(),
+  topRankedGroups: z.literal('true').optional(),
 });
 
 export const getAllGroupsSidbarDetailsSchema = z.object({

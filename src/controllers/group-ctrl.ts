@@ -201,6 +201,7 @@ export const getAllGroupsSidbarDetails = async (
       },
       select: {
         id: true,
+        type: true,
         meetupDate: true,
         title: true,
         meetupLocation: true,
@@ -218,6 +219,7 @@ export const getAllGroupsSidbarDetails = async (
       },
       select: {
         id: true,
+        type: true,
         coverImage: true,
         title: true,
         author: {
@@ -238,6 +240,7 @@ export const getAllGroupsSidbarDetails = async (
       },
       select: {
         id: true,
+        type: true,
         title: true,
         coverImage: true,
         author: {
@@ -266,25 +269,77 @@ export const getGroupById = async (
   const id = req.params.id;
   const members = req.query.members;
   const stats = req.query.stats;
-
-  if (stats === 'true') {
-  }
+  const meetups = req.query.meetups;
 
   let include: { [key: string]: any } = {};
+
+  let topRankedGroups;
+
+  try {
+    topRankedGroups = await prisma.group.findMany({
+      orderBy: {
+        contents: {
+          _count: 'desc',
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        profileImage: true,
+        _count: true,
+      },
+    });
+  } catch (error) {}
+
+  if (stats === 'true') {
+    include = {
+      ...include,
+      _count: {
+        select: {
+          contents: true,
+          members: true,
+        },
+      },
+    };
+  }
 
   if (members === 'true') {
     include = {
       ...include,
-      members: true,
+      members: {
+        select: {
+          user: {
+            select: {
+              avatarImg: true,
+              userName: true,
+            },
+          },
+          role: true,
+        },
+      },
     };
   }
 
-  let postsCount;
-
-  if (stats === 'true') {
-    try {
-      postsCount = await prisma.user.count();
-    } catch (error) {}
+  if (meetups === 'true') {
+    include = {
+      ...include,
+      contents: {
+        where: {
+          type: EContentType.MEETUP,
+        },
+        orderBy: {
+          meetupDate: 'desc',
+        },
+        select: {
+          id: true,
+          meetupDate: true,
+          title: true,
+          meetupLocation: true,
+          tags: true,
+        },
+        take: 3,
+      },
+    };
   }
 
   try {
@@ -292,8 +347,43 @@ export const getGroupById = async (
       where: {
         id,
       },
+      // include,
       include: {
         ...include,
+        // contents: {
+        //   where: {
+        //     type: EContentType.MEETUP,
+        //   },
+        //   orderBy: {
+        //     meetupDate: 'desc',
+        //   },
+        //   select: {
+        //     id: true,
+        //     meetupDate: true,
+        //     title: true,
+        //     meetupLocation: true,
+        //     tags: true,
+        //   },
+        //   take: 3,
+        // },
+
+        // members: {
+        //   select: {
+        //     user: {
+        //       select: {
+        //         avatarImg: true,
+        //         userName: true,
+        //       },
+        //     },
+        //     role: true,
+        //   },
+        // },
+        // _count: {
+        //   select: {
+        //     contents: true,
+        //     members: true,
+        //   },
+        // },
       },
     });
 
