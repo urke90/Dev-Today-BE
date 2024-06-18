@@ -1,6 +1,7 @@
 import {
   createGroup,
   getAllGroups,
+  getAllGroupsSidbarDetails,
   getGroupById,
   updateGroup,
 } from '@/controllers/group-ctrl';
@@ -8,6 +9,7 @@ import { idSchema } from '@/lib/zod/common';
 import {
   createGroupSchema,
   getAllGroupsSchema,
+  getAllGroupsSidbarDetailsSchema,
   getGroupByIdSchema,
   updateGroupSchema,
 } from '@/lib/zod/group';
@@ -23,6 +25,12 @@ import express from 'express';
 export const groupRoutes = express.Router();
 
 groupRoutes.get('/', validateReqQuery(getAllGroupsSchema), getAllGroups);
+
+groupRoutes.get(
+  '/stats',
+  validateReqQuery(getAllGroupsSidbarDetailsSchema),
+  getAllGroupsSidbarDetails
+);
 
 groupRoutes.get(
   '/:id',

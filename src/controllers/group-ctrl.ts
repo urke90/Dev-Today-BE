@@ -4,10 +4,11 @@ import { idSchema } from '@/lib/zod/common';
 import {
   createGroupSchema,
   getAllGroupsSchema,
+  getAllGroupsSidbarDetailsSchema,
   getGroupByIdSchema,
   updateGroupSchema,
 } from '@/lib/zod/group';
-import { Role } from '@prisma/client';
+import { EContentType, Role } from '@prisma/client';
 import type { Response } from 'express';
 import type {
   TypedRequest,
@@ -99,7 +100,7 @@ export const getAllGroups = async (
   const groupsPerPage = req.query.limit ? Number(req.query.limit) : 4;
   const page = req.query.page ? Number(req.query.page) : 1;
   const q = req.query.q;
-  const member = req.query.member;
+  const members = req.query.members;
 
   let where: { [key: string]: any } = {};
   let include: { [key: string]: any } = {};
@@ -108,7 +109,7 @@ export const getAllGroups = async (
     where = { ...where, name: { contains: q, mode: 'insensitive' } };
   }
 
-  if (member) {
+  if (members === 'true') {
     include = {
       members: {
         select: {
@@ -148,12 +149,126 @@ export const getAllGroups = async (
   }
 };
 
+export const getAllGroupsSidbarDetails = async (
+  req: TypedRequestQuery<typeof getAllGroupsSidbarDetailsSchema>,
+  res: Response
+) => {
+  try {
+    const topRankedGroups = await prisma.group.findMany({
+      orderBy: {
+        contents: {
+          _count: 'desc',
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        coverImage: true,
+        _count: {
+          select: {
+            contents: true,
+          },
+        },
+      },
+      take: 5,
+    });
+
+    const topActiveGroups = await prisma.group.findMany({
+      orderBy: {
+        members: {
+          _count: 'desc',
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        coverImage: true,
+        _count: {
+          select: {
+            members: true,
+          },
+        },
+      },
+      take: 5,
+    });
+
+    const meetups = await prisma.content.findMany({
+      where: {
+        type: EContentType.MEETUP,
+      },
+      orderBy: {
+        meetupDate: 'desc',
+      },
+      select: {
+        id: true,
+        meetupDate: true,
+        title: true,
+        meetupLocation: true,
+        tags: true,
+      },
+      take: 3,
+    });
+
+    const podcasts = await prisma.content.findMany({
+      where: {
+        type: EContentType.PODCAST,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      select: {
+        id: true,
+        coverImage: true,
+        title: true,
+        author: {
+          select: {
+            userName: true,
+          },
+        },
+      },
+      take: 3,
+    });
+
+    const posts = await prisma.content.findMany({
+      where: {
+        type: EContentType.POST,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      select: {
+        id: true,
+        title: true,
+        coverImage: true,
+        author: {
+          select: {
+            userName: true,
+          },
+        },
+      },
+      take: 2,
+    });
+
+    res
+      .status(200)
+      .json({ topRankedGroups, topActiveGroups, meetups, podcasts, posts });
+  } catch (error) {
+    console.log('Error getting groups', error);
+
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
+
 export const getGroupById = async (
   req: TypedRequest<typeof idSchema, typeof getGroupByIdSchema, any>,
   res: Response
 ) => {
   const id = req.params.id;
   const members = req.query.members;
+  const stats = req.query.stats;
+
+  if (stats === 'true') {
+  }
 
   let include: { [key: string]: any } = {};
 
@@ -164,12 +279,22 @@ export const getGroupById = async (
     };
   }
 
+  let postsCount;
+
+  if (stats === 'true') {
+    try {
+      postsCount = await prisma.user.count();
+    } catch (error) {}
+  }
+
   try {
     const group = await prisma.group.findUnique({
       where: {
         id,
       },
-      include,
+      include: {
+        ...include,
+      },
     });
 
     res.status(200).json(group);
@@ -179,6 +304,12 @@ export const getGroupById = async (
     res.status(500).json({ message: 'Internal server error!' });
   }
 };
+
+// getAllGroups ===> /groups GET ----> vraca group cards sa paginacijom
+// getAllGroupsSidbarDetails ====> /groups/stats GET ---->  top racked, active groups, meetup podcasts posts
+// getGroupById ===> /groups/:id GET ---> vraca SIDBAR detail za group-details page + data za group update page
+// getGroupContent ====> /groups/:id/contents ----> vraca dinamicni content za specific group
+// getGroupMembers ====> vraca sve membere (i admins i users)
 
 // export const getGroupsForDropdown = async (
 //   req: TypedRequestQuery<typeof groupDropdownSchema>,

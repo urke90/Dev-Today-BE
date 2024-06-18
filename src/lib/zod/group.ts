@@ -19,7 +19,7 @@ export const groupDropdownSchema = z.object({
 export const getAllGroupsSchema = z.object({
   page: z.coerce.number().optional(),
   q: z.string().trim().optional(),
-  member: z.coerce.boolean().optional(),
+  members: z.literal('true').optional(),
   limit: z.coerce.number().optional(),
 });
 
@@ -80,4 +80,10 @@ export const updateGroupSchema = z.object({
 
 export const getGroupByIdSchema = z.object({
   members: z.literal('true').optional(),
+  recentMeetups: z.literal('true').optional(),
+  stats: z.literal('true').optional(),
+});
+
+export const getAllGroupsSidbarDetailsSchema = z.object({
+  filter: z.enum(['newest', 'popular', 'joined']).optional(),
 });
