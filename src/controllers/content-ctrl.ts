@@ -338,6 +338,7 @@ export const createPodcast = async (
 /***************************************************************** CREATE ***********************************************************/
 
 /***************************************************************** UPDATE ***********************************************************/
+
 export const updatePost = async (
   req: TypedRequest<typeof idSchema, any, typeof postSchema>,
   res: Response

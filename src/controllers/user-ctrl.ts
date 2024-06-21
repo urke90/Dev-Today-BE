@@ -14,7 +14,11 @@ import {
   registerSchema,
   userIdSchema,
 } from '@/lib/zod/user';
-import { IGroup, IGroupContent, IGroupMember } from '@/types/group';
+import {
+  IGroupContent,
+  IGroupMember,
+  IGroupWithMembersAndCount,
+} from '@/types/group';
 import { excludeField, excludeProperty } from '@/utils/prisma-functions';
 import { EContentType } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
@@ -491,6 +495,7 @@ export const getUserGroups = async (
   const { page } = req.query;
 
   try {
+    // TODO fix types in the controller, remove ANY
     let groupContent: any = await prisma.groupUser.findMany({
       where: {
         userId: id,
@@ -521,11 +526,12 @@ export const getUserGroups = async (
       take: 6,
     });
 
+    // TODO fix interfaces/types naming
     if (groupContent) {
       groupContent = groupContent.map(
         (groupMember: IGroupContent) => groupMember.group
       );
-      groupContent = groupContent.map((group: IGroup) => ({
+      groupContent = groupContent.map((group: IGroupWithMembersAndCount) => ({
         ...group,
         members: group.members.map((member: IGroupMember) => member.user),
       }));

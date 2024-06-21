@@ -79,6 +79,12 @@ export const updateGroupSchema = z.object({
 /************************************************************ GROUP *******************************************************************/
 
 export const getGroupByIdSchema = z.object({
+  viewerId: z
+    .string()
+    .trim()
+    .uuid('Not valida UUID')
+    .length(36, 'User ID must be at least 36 characters long')
+    .optional(),
   members: z.literal('true').optional(),
   stats: z.literal('true').optional(),
   meetups: z.literal('true').optional(),
@@ -87,4 +93,9 @@ export const getGroupByIdSchema = z.object({
 
 export const getAllGroupsSidbarDetailsSchema = z.object({
   filter: z.enum(['newest', 'popular', 'joined']).optional(),
+});
+
+export const getGroupMembersSchema = z.object({
+  page: z.string().trim().optional(),
+  limit: z.string().trim().optional(),
 });

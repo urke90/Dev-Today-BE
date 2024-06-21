@@ -6,6 +6,7 @@ import {
   getAllGroupsSchema,
   getAllGroupsSidbarDetailsSchema,
   getGroupByIdSchema,
+  getGroupMembersSchema,
   updateGroupSchema,
 } from '@/lib/zod/group';
 import { EContentType, Role } from '@prisma/client';
@@ -105,36 +106,36 @@ export const getAllGroups = async (
   let where: { [key: string]: any } = {};
   let include: { [key: string]: any } = {};
 
-  if (q?.trim() !== '') {
-    where = { ...where, name: { contains: q, mode: 'insensitive' } };
-  }
-
-  if (members === 'true') {
-    include = {
-      members: {
-        select: {
-          user: {
-            select: {
-              avatarImg: true,
-            },
-          },
-          take: 4,
-        },
-      },
-      _count: {
-        select: {
-          members: true,
-        },
-      },
-    };
-  }
-
   try {
+    if (q?.trim() !== '') {
+      where = { ...where, name: { contains: q, mode: 'insensitive' } };
+    }
+
+    if (members === 'true') {
+      include = {
+        members: {
+          select: {
+            user: {
+              select: {
+                avatarImg: true,
+              },
+            },
+            take: 4,
+          },
+        },
+        _count: {
+          select: {
+            members: true,
+          },
+        },
+      };
+    }
+
     const totalGroups = await prisma.group.count();
     const totalPages = Math.ceil(totalGroups / groupsPerPage);
     const hasNextPage = page < totalPages;
 
-    const groups = await prisma.group.findMany({
+    const groups: any = await prisma.group.findMany({
       where,
       include,
       take: groupsPerPage,
@@ -262,6 +263,52 @@ export const getAllGroupsSidbarDetails = async (
   }
 };
 
+type IGetGroupById = Prisma.GroupGetPayload<{
+  include: {
+    _count: {
+      select: {
+        contents: true;
+        members: true;
+      };
+    };
+    contents: {
+      where: {
+        type: 'MEETUP';
+      };
+      orderBy: {
+        meetupDate: 'desc';
+      };
+      select: {
+        id: true;
+        type: true;
+        meetupDate: true;
+        title: true;
+        meetupLocation: true;
+        tags: true;
+      };
+      take: 3;
+    };
+    members: {
+      select: {
+        role: true;
+        user: {
+          select: {
+            id: true;
+            avatarImg: true;
+            userName: true;
+          };
+        };
+      };
+      take: 15;
+    };
+    author: {
+      select: {
+        userName: true;
+      };
+    };
+  };
+}>;
+
 export const getGroupById = async (
   req: TypedRequest<typeof idSchema, typeof getGroupByIdSchema, any>,
   res: Response
@@ -270,124 +317,130 @@ export const getGroupById = async (
   const members = req.query.members;
   const stats = req.query.stats;
   const meetups = req.query.meetups;
+  const topRankedGroups = req.query.topRankedGroups;
+  const viewerId = req.query.viewerId;
 
   let include: { [key: string]: any } = {};
-
-  let topRankedGroups;
+  let fetchedTopRankedGroups;
 
   try {
-    topRankedGroups = await prisma.group.findMany({
-      orderBy: {
-        contents: {
-          _count: 'desc',
+    if (stats === 'true') {
+      include = {
+        ...include,
+        _count: {
+          select: {
+            contents: true,
+            members: true,
+          },
         },
-      },
-      select: {
-        id: true,
-        name: true,
-        profileImage: true,
-        _count: true,
-      },
-    });
-  } catch (error) {}
+      };
+    }
 
-  if (stats === 'true') {
-    include = {
-      ...include,
-      _count: {
-        select: {
-          contents: true,
-          members: true,
-        },
-      },
-    };
-  }
-
-  if (members === 'true') {
-    include = {
-      ...include,
-      members: {
-        select: {
-          user: {
-            select: {
-              avatarImg: true,
-              userName: true,
+    // TODO: Should i transform this data to get "role" prop inside "user" object????
+    if (members === 'true') {
+      include = {
+        ...include,
+        members: {
+          select: {
+            role: true,
+            user: {
+              select: {
+                id: true,
+                avatarImg: true,
+                userName: true,
+              },
             },
           },
-          role: true,
+          take: 15,
         },
-      },
-    };
-  }
+      };
+    }
 
-  if (meetups === 'true') {
-    include = {
-      ...include,
-      contents: {
-        where: {
-          type: EContentType.MEETUP,
+    if (meetups === 'true') {
+      include = {
+        ...include,
+        contents: {
+          where: {
+            type: EContentType.MEETUP,
+          },
+          orderBy: {
+            meetupDate: 'desc',
+          },
+          select: {
+            id: true,
+            type: true,
+            meetupDate: true,
+            title: true,
+            meetupLocation: true,
+            tags: true,
+          },
+          take: 3,
         },
-        orderBy: {
-          meetupDate: 'desc',
-        },
-        select: {
-          id: true,
-          meetupDate: true,
-          title: true,
-          meetupLocation: true,
-          tags: true,
-        },
-        take: 3,
-      },
-    };
-  }
+      };
+    }
 
-  try {
-    const group = await prisma.group.findUnique({
+    const group = (await prisma.group.findUnique({
       where: {
         id,
       },
-      // include,
       include: {
         ...include,
-        // contents: {
-        //   where: {
-        //     type: EContentType.MEETUP,
-        //   },
-        //   orderBy: {
-        //     meetupDate: 'desc',
-        //   },
-        //   select: {
-        //     id: true,
-        //     meetupDate: true,
-        //     title: true,
-        //     meetupLocation: true,
-        //     tags: true,
-        //   },
-        //   take: 3,
-        // },
-
-        // members: {
-        //   select: {
-        //     user: {
-        //       select: {
-        //         avatarImg: true,
-        //         userName: true,
-        //       },
-        //     },
-        //     role: true,
-        //   },
-        // },
-        // _count: {
-        //   select: {
-        //     contents: true,
-        //     members: true,
-        //   },
-        // },
+        author: {
+          select: {
+            userName: true,
+          },
+        },
       },
-    });
+    })) as IGetGroupById;
 
-    res.status(200).json(group);
+    if (topRankedGroups === 'true') {
+      fetchedTopRankedGroups = await prisma.group.findMany({
+        orderBy: {
+          contents: {
+            _count: 'desc',
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          profileImage: true,
+          _count: {
+            select: {
+              contents: true,
+            },
+          },
+        },
+        take: 5,
+      });
+    }
+
+    let transformedMembers;
+
+    if (group && 'members' in group) {
+      transformedMembers = group.members.map((member) => ({
+        role: member.role,
+        ...member.user,
+      }));
+    }
+
+    const isGroupOwner = group.authorId === viewerId;
+    const isGroupAdmin = group.members.some(
+      (member) => member.user.id === viewerId && member.role === Role.ADMIN
+    );
+    const isGroupUser = group.members.some(
+      (member) => member.user.id === viewerId && member.role === Role.USER
+    );
+
+    res.status(200).json({
+      group: {
+        ...group,
+        members: transformedMembers,
+      },
+      isGroupOwner,
+      isGroupAdmin,
+      isGroupUser,
+      topRankedGroups: fetchedTopRankedGroups,
+    });
   } catch (error) {
     console.log('Error getting group', error);
 
@@ -395,42 +448,63 @@ export const getGroupById = async (
   }
 };
 
+type IGetGroupMemebers = Prisma.GroupUserGetPayload<{
+  select: {
+    role: true;
+    user: {
+      select: {
+        id: true;
+        avatarImg: true;
+        userName: true;
+      };
+    };
+  };
+}>;
+
+export const getGroupMembers = async (
+  req: TypedRequest<typeof idSchema, typeof getGroupMembersSchema, any>,
+  res: Response
+) => {
+  const groupId = req.params.id;
+  const page = req.query.page ? Number(req.query.page) : 1;
+  const itemsPerPage = req.query.limit ? Number(req.query.limit) : 15;
+
+  try {
+    // TODO continue here
+    const fetchedMembers = await prisma.groupUser.findMany({
+      where: {
+        groupId,
+      },
+      select: {
+        role: true,
+        user: {
+          select: {
+            id: true,
+            avatarImg: true,
+            userName: true,
+          },
+        },
+      },
+    });
+    const members = fetchedMembers.map((member) => ({
+      role: member.role,
+      ...member.user,
+    }));
+
+    const membersCount = await prisma.groupUser.count();
+    const totalPages = Math.ceil(membersCount / itemsPerPage);
+    const hasNextPage = page < totalPages;
+
+    res.status(200).json({ members, totalPages, hasNextPage });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
+
+export const joinOrLeaveGroup = async (req: Request, res: Response) => {};
+
 // getAllGroups ===> /groups GET ----> vraca group cards sa paginacijom
 // getAllGroupsSidbarDetails ====> /groups/stats GET ---->  top racked, active groups, meetup podcasts posts
 // getGroupById ===> /groups/:id GET ---> vraca SIDBAR detail za group-details page + data za group update page
 // getGroupContent ====> /groups/:id/contents ----> vraca dinamicni content za specific group
 // getGroupMembers ====> vraca sve membere (i admins i users)
-
-// export const getGroupsForDropdown = async (
-//   req: TypedRequestQuery<typeof groupDropdownSchema>,
-//   res: Response
-// ) => {
-//   const name = req.query.name?.trim();
-//   const groupsPerPage = 3;
-
-//   let where: { [key: string]: any } = {};
-
-//   if (name && name.length > 1)
-//     where = { ...where, name: { contains: name, mode: 'insensitive' } };
-
-//   try {
-//     const groups = await prisma.group.findMany({
-//       where: {
-//         ...where,
-//       },
-//       take: groupsPerPage,
-//     });
-
-//     const modifiedGroups = groups.map(({ id, name, bio, profileImage }) => ({
-//       id,
-//       name,
-//       profileImage,
-//       bio,
-//     }));
-
-//     res.status(200).json({ groups: modifiedGroups });
-//   } catch (error) {
-//     console.log('Error getting groups', error);
-//     res.status(500).json({ message: 'Internal server error!' });
-//   }
-// };
