@@ -9,13 +9,15 @@ import {
   updatePodcast,
   updatePost,
 } from '@/controllers/content-ctrl';
-import { idSchema } from '@/lib/zod/common';
+import { idSchema, viewerIdSchema } from '@/lib/zod/common';
 import {
   allContentQuerySchema,
   meetupSchema,
   podcastSchema,
   postSchema,
   tagsTitleSchema,
+  updateMeetupSchema,
+  updatePostSchema,
 } from '@/lib/zod/content';
 import {
   validateReqBody,
@@ -49,21 +51,24 @@ contentRoutes.post('/podcast', validateReqBody(podcastSchema), createPodcast);
 contentRoutes.patch(
   '/post/:id',
   validateReqParams(idSchema),
-  validateReqBody(postSchema),
+  validateReqQuery(viewerIdSchema),
+  validateReqBody(updatePostSchema),
   updatePost
 );
 
 contentRoutes.patch(
   '/meetup/:id',
   validateReqParams(idSchema),
-  validateReqBody(meetupSchema),
+  validateReqQuery(viewerIdSchema),
+  validateReqBody(updateMeetupSchema),
   updateMeetup
 );
 
 contentRoutes.patch(
   '/podcast/:id',
   validateReqParams(idSchema),
-  validateReqBody(podcastSchema),
+  validateReqQuery(viewerIdSchema),
+  validateReqBody(updatePostSchema),
   updatePodcast
 );
 

@@ -119,7 +119,32 @@ export const podcastSchema = contentCreateBaseSchema.extend({
 
 /***************************************************************** UPDATE ***********************************************************/
 
-// ! Reused create schemas. Left this just in case we need it later.
+export const contentUpdateBaseSchema = contentCreateBaseSchema.omit({
+  authorId: true,
+});
+
+export const updatePostSchema = contentUpdateBaseSchema.extend({});
+
+export const updateMeetupSchema = contentUpdateBaseSchema.extend({
+  meetupLocation: z
+    .string()
+    .trim()
+    .min(3, 'Location must be at least 3 characters long!'),
+  meetupLocationImage: z.string().trim().url(),
+  meetupDate: z.coerce.date({
+    required_error: 'Date is required!',
+    invalid_type_error: 'Invalid date format!',
+  }),
+});
+
+export const updatePodcastSchema = contentUpdateBaseSchema.extend({
+  podcastFile: z.string().trim().url('Please provide valid URL!'),
+  podcastTitle: z
+    .string()
+    .trim()
+    .min(2, 'Title must be at least 2 characters long!'),
+});
+
 // const contentUpdateBaseSchema = z.object({
 //   title: z
 //     .string()
@@ -138,27 +163,3 @@ export const podcastSchema = contentCreateBaseSchema.extend({
 //   comments: z.array(commentsSchema).optional(),
 // });
 // export const updatePostSchema = contentUpdateBaseSchema.extend({});
-
-// export const updateMeetupSchema = contentUpdateBaseSchema.extend({
-//   meetupLocation: z
-//     .string()
-//     .trim()
-//     .min(3, 'Location must be at least 3 characters long!')
-//     .optional(),
-//   meetupLocationImage: z.string().trim().url().optional(),
-//   meetupDate: z.coerce
-//     .date({
-//       required_error: 'Date is required!',
-//       invalid_type_error: 'Invalid date format!',
-//     })
-//     .optional(),
-// });
-
-// export const updatePodcastSchema = contentUpdateBaseSchema.extend({
-//   podcastFile: z.string().trim().url('Please provide valid URL!').optional(),
-//   podcastTitle: z
-//     .string()
-//     .trim()
-//     .min(2, 'Title must be at least 2 characters long!')
-//     .optional(),
-// });

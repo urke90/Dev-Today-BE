@@ -1,10 +1,12 @@
-import { idSchema } from '@/lib/zod/common';
+import { idSchema, viewerIdSchema } from '@/lib/zod/common';
 import {
   allContentQuerySchema,
   meetupSchema,
   podcastSchema,
   postSchema,
   tagsTitleSchema,
+  updateMeetupSchema,
+  updatePostSchema,
 } from '@/lib/zod/content';
 import type { Response } from 'express';
 import type {
@@ -340,22 +342,47 @@ export const createPodcast = async (
 /***************************************************************** UPDATE ***********************************************************/
 
 export const updatePost = async (
-  req: TypedRequest<typeof idSchema, any, typeof postSchema>,
+  req: TypedRequest<
+    typeof idSchema,
+    typeof viewerIdSchema,
+    typeof updatePostSchema
+  >,
   res: Response
 ) => {
-  const id = req.params.id;
+  const postId = req.params.id;
+  const viewerId = req.query.viewerId;
   const { description, title, coverImage, tags } = req.body;
 
   try {
+    const existingPost = await prisma.content.findUnique({
+      where: {
+        id: postId,
+      },
+      include: {
+        tags: true,
+      },
+    });
+
+    if (!existingPost)
+      return res.status(404).json({ message: 'Post not found!' });
+
+    if (existingPost.authorId !== viewerId)
+      return res.status(401).json({ message: 'Unauthorized' });
+
+    const tagsToRemove = existingPost.tags.filter(
+      (t) => !tags.includes(t.title)
+    );
+
     const post = await prisma.content.update({
       where: {
-        id,
+        id: postId,
       },
       data: {
         title,
         description,
         coverImage,
         tags: {
+          disconnect: tagsToRemove.map((tag) => ({ title: tag.title })),
           connectOrCreate: tags?.map((tag) => ({
             where: {
               title: tag,
@@ -381,10 +408,16 @@ export const updatePost = async (
 };
 
 export const updateMeetup = async (
-  req: TypedRequest<typeof idSchema, any, typeof meetupSchema>,
+  req: TypedRequest<
+    typeof idSchema,
+    typeof viewerIdSchema,
+    typeof updateMeetupSchema
+  >,
   res: Response
 ) => {
-  const id = req.params.id;
+  const meetupId = req.params.id;
+  const viewerId = req.query.viewerId;
+
   const {
     description,
     title,
@@ -396,15 +429,35 @@ export const updateMeetup = async (
   } = req.body;
 
   try {
+    const existingMeetup = await prisma.content.findUnique({
+      where: {
+        id: meetupId,
+      },
+      include: {
+        tags: true,
+      },
+    });
+
+    if (!existingMeetup)
+      return res.status(404).json({ message: 'Post not found!' });
+
+    if (existingMeetup.authorId !== viewerId)
+      return res.status(401).json({ message: 'Unauthorized' });
+
+    const tagsToRemove = existingMeetup.tags.filter(
+      (t) => !tags.includes(t.title)
+    );
+
     const meetup = await prisma.content.update({
       where: {
-        id,
+        id: meetupId,
       },
       data: {
         title,
         description,
         coverImage,
         tags: {
+          disconnect: tagsToRemove.map((tag) => ({ title: tag.title })),
           connectOrCreate: tags?.map((tag) => ({
             where: {
               title: tag,
@@ -433,23 +486,48 @@ export const updateMeetup = async (
 };
 
 export const updatePodcast = async (
-  req: TypedRequest<typeof idSchema, any, typeof podcastSchema>,
+  req: TypedRequest<
+    typeof idSchema,
+    typeof viewerIdSchema,
+    typeof podcastSchema
+  >,
   res: Response
 ) => {
-  const id = req.params.id;
+  const podcastId = req.params.id;
+  const viewerId = req.query.viewerId;
   const { description, title, coverImage, tags, podcastFile, podcastTitle } =
     req.body;
 
   try {
+    const existingPodcast = await prisma.content.findUnique({
+      where: {
+        id: podcastId,
+      },
+      include: {
+        tags: true,
+      },
+    });
+
+    if (!existingPodcast)
+      return res.status(404).json({ message: 'Post not found!' });
+
+    if (existingPodcast.authorId !== viewerId)
+      return res.status(401).json({ message: 'Unauthorized' });
+
+    const tagsToRemove = existingPodcast.tags.filter(
+      (t) => !tags.includes(t.title)
+    );
+
     const podcast = await prisma.content.update({
       where: {
-        id,
+        id: podcastId,
       },
       data: {
         title,
         description,
         coverImage,
         tags: {
+          disconnect: tagsToRemove.map((tag) => ({ title: tag.title })),
           connectOrCreate: tags?.map((tag) => ({
             where: {
               title: tag,
