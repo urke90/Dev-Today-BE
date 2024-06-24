@@ -3,6 +3,7 @@ import {
   getAllGroups,
   getAllGroupsSidbarDetails,
   getGroupById,
+  getGroupContent,
   getGroupMembers,
   updateGroup,
 } from '@/controllers/group-ctrl';
@@ -12,6 +13,7 @@ import {
   getAllGroupsSchema,
   getAllGroupsSidbarDetailsSchema,
   getGroupByIdSchema,
+  getGroupContentSchema,
   getGroupMembersSchema,
   updateGroupSchema,
 } from '@/lib/zod/group';
@@ -46,6 +48,13 @@ groupRoutes.get(
   validateReqParams(idSchema),
   validateReqQuery(getGroupMembersSchema),
   getGroupMembers
+);
+
+groupRoutes.get(
+  '/:id/content',
+  validateReqParams(idSchema),
+  validateReqQuery(getGroupContentSchema),
+  getGroupContent
 );
 
 groupRoutes.post('/', validateReqBody(createGroupSchema), createGroup);

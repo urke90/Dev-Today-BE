@@ -1,3 +1,4 @@
+import { EContentTypeLowercase } from '@/types/content';
 import { Role } from '@prisma/client';
 import z from 'zod';
 
@@ -10,10 +11,6 @@ const membersSchema = z.object({
     .uuid('User ID must be unique and uuid')
     .length(36, 'Author ID must have 36 characters exactly'),
   role: z.nativeEnum(Role),
-});
-
-export const groupDropdownSchema = z.object({
-  name: z.string().trim().optional(),
 });
 
 export const getAllGroupsSchema = z.object({
@@ -98,4 +95,15 @@ export const getAllGroupsSidbarDetailsSchema = z.object({
 export const getGroupMembersSchema = z.object({
   page: z.string().trim().optional(),
   limit: z.string().trim().optional(),
+});
+
+export const getGroupContentSchema = z.object({
+  type: z.nativeEnum(EContentTypeLowercase),
+  limit: z.string().trim().optional(),
+  page: z.string().trim().optional(),
+  viewerId: z
+    .string()
+    .trim()
+    .uuid('Not valida UUID')
+    .length(36, 'User ID must be at least 36 characters long'),
 });

@@ -6,6 +6,7 @@ import {
   getAllGroupsSchema,
   getAllGroupsSidbarDetailsSchema,
   getGroupByIdSchema,
+  getGroupContentSchema,
   getGroupMembersSchema,
   updateGroupSchema,
 } from '@/lib/zod/group';
@@ -460,6 +461,64 @@ type IGetGroupMemebers = Prisma.GroupUserGetPayload<{
     };
   };
 }>;
+
+export const getGroupContent = async (
+  req: TypedRequest<typeof idSchema, typeof getGroupContentSchema, any>,
+  res: Response
+) => {
+  const groupId = req.params.id;
+  const viewerId = req.query.viewerId;
+  const type = req.query.type;
+  const itemsPerPage = req.query.limit ? Number(req.query.limit) : 4;
+  const page = req.query.page ? Number(req.query.page) : 1;
+
+  try {
+    const contents = await prisma.content.findMany({
+      where: {
+        type: type.toUpperCase() as EContentType,
+        groupId,
+      },
+      include: {
+        author: {
+          select: {
+            userName: true,
+          },
+        },
+        likes: {
+          where: {
+            userId: viewerId,
+          },
+        },
+      },
+      skip: (page - 1) * itemsPerPage,
+      take: itemsPerPage,
+    });
+
+    const contentsWithLikes = contents.map((content) => ({
+      ...content,
+      isLiked: content.likes.length > 0,
+      likes: undefined,
+    }));
+
+    const contentCount = await prisma.content.count({
+      where: {
+        groupId,
+        type: type.toUpperCase() as EContentType,
+      },
+    });
+
+    const totalPages = Math.ceil(contentCount / itemsPerPage);
+    const hasNextPage = page < totalPages;
+
+    res
+      .status(200)
+      .json({ contents: contentsWithLikes, totalPages, hasNextPage, page });
+  } catch (error) {
+    console.log('Error getting group', error);
+
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
 
 export const getGroupMembers = async (
   req: TypedRequest<typeof idSchema, typeof getGroupMembersSchema, any>,
