@@ -47,13 +47,18 @@ export const commentsSchema = z.object({
     .string()
     .trim()
     .uuid('ID must be unique and uuid')
-    .length(36, 'ID must be exactly 36 characters long!'),
+    .length(36, 'ID must be exactly 36 characters long!')
+    .optional(),
+  replyingToId: z
+    .string()
+    .trim()
+    .uuid('ID must be unique and uuid')
+    .length(36, 'ID must be exactly 36 characters long!')
+    .optional(),
   text: z
     .string()
     .trim()
     .min(3, 'Comments must be at least 3 characters long!'),
-  createdAt: z.string().date('Created at date is required!'),
-  updatedAt: z.string().date('Updated at date is required!'),
   authorId: z
     .string()
     .trim()
@@ -64,6 +69,11 @@ export const commentsSchema = z.object({
     .trim()
     .uuid('ID must be unique and uuid')
     .length(36, 'ID must be exactly 36 characters long!'),
+});
+
+export const likeCommentsSchema = z.object({
+  id: z.string().uuid().optional(),
+  userId: z.string().uuid().optional(),
 });
 
 /***************************************************************** CREATE ***********************************************************/

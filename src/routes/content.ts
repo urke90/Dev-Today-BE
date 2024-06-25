@@ -1,10 +1,15 @@
 import {
+  createComment,
   createMeetup,
   createPodcast,
   createPost,
+  createUpdateCommentLike,
+  deleteComment,
+  getAllComments,
   getAllTags,
   getContent,
   getContentById,
+  updateComment,
   updateMeetup,
   updatePodcast,
   updatePost,
@@ -12,6 +17,7 @@ import {
 import { idSchema, viewerIdSchema } from '@/lib/zod/common';
 import {
   allContentQuerySchema,
+  commentsSchema,
   meetupSchema,
   podcastSchema,
   postSchema,
@@ -25,6 +31,10 @@ import {
   validateReqQuery,
 } from '@/utils/middlewares';
 import express from 'express';
+import {
+  validateRequestBody,
+  validateRequestParams,
+} from 'zod-express-middleware';
 
 // ----------------------------------------------------------------
 
@@ -73,3 +83,24 @@ contentRoutes.patch(
 );
 
 /***************************************************************** UPDATE ********************************************************** */
+
+/***************************************************************** COMMENTS ********************************************************** */
+
+contentRoutes.post('/comment', validateReqBody(commentsSchema), createComment);
+contentRoutes.patch(
+  '/comment',
+  validateRequestBody(commentsSchema),
+  updateComment
+);
+contentRoutes.delete('/comment', validateRequestBody(idSchema), deleteComment);
+
+contentRoutes.post(
+  '/comment/like',
+  validateReqBody(idSchema),
+  createUpdateCommentLike
+);
+contentRoutes.get(
+  '/:id/comment',
+  validateRequestParams(idSchema),
+  getAllComments
+);

@@ -85,6 +85,7 @@ model Like {
   content   Content @relation(fields: [contentId], references: [id])
   contentId String
 
+
   @@id([userId, contentId])
 }
 
@@ -104,7 +105,12 @@ model Comment {
   contentId String
   content   Content   @relation(fields: [contentId], references: [id])
   likes     User[]    @relation("CommentLikes")
+  replyingTo Comment?  @relation("replyingTo",fields: [replyingToId], references: [id])
+  replyingToId String?
+  replies   Comment[] @relation("replyingTo")
+
 }
+
 
 model Group {
   id           String      @id @default(uuid())
