@@ -132,7 +132,7 @@ export const registerUser = async (
     console.log('Error registering user!', error);
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2002') {
-        res
+        return res
           .status(409)
           .json({ message: 'User with provided email already exists!' });
       }

@@ -8,6 +8,7 @@ import {
   getGroupByIdSchema,
   getGroupContentSchema,
   getGroupMembersSchema,
+  joinOrLeaveGroupSchema,
   updateGroupSchema,
 } from '@/lib/zod/group';
 import { EContentType, Role } from '@prisma/client';
@@ -550,17 +551,77 @@ export const getGroupMembers = async (
       ...member.user,
     }));
 
-    const membersCount = await prisma.groupUser.count();
+    const membersCount = await prisma.groupUser.count({
+      where: {
+        groupId,
+      },
+    });
     const totalPages = Math.ceil(membersCount / itemsPerPage);
     const hasNextPage = page < totalPages;
 
     res.status(200).json({ members, totalPages, hasNextPage });
   } catch (error) {
+    console.log('Error getting group members', error);
     res.status(500).json({ message: 'Internal server error!' });
   }
 };
 
-export const joinOrLeaveGroup = async (req: Request, res: Response) => {};
+export const joinGroup = async (
+  req: TypedRequest<typeof idSchema, any, typeof joinOrLeaveGroupSchema>,
+  res: Response
+) => {
+  const groupId = req.params.id;
+  const viewerId = req.body.viewerId;
+
+  try {
+    await prisma.groupUser.create({
+      data: {
+        groupId,
+        userId: viewerId,
+      },
+    });
+
+    res.status(201).json({ message: 'User added to the group.' });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2002') {
+        return res
+          .status(409)
+          .json({ message: 'User with provided email already exists!' });
+      }
+    }
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
+
+export const leaveGroup = async (
+  req: TypedRequest<typeof idSchema, any, typeof joinOrLeaveGroupSchema>,
+  res: Response
+) => {
+  const groupId = req.params.id;
+  const viewerId = req.body.viewerId;
+
+  try {
+    const existingMember = await prisma.groupUser.findUnique({
+      where: {
+        userId_groupId: { userId: viewerId, groupId },
+      },
+    });
+
+    if (!existingMember)
+      return res.status(404).json({ message: 'User not founded!' });
+
+    await prisma.groupUser.delete({
+      where: {
+        userId_groupId: { userId: viewerId, groupId },
+      },
+    });
+
+    res.status(200).json({ message: 'User removed from group.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
 
 // getAllGroups ===> /groups GET ----> vraca group cards sa paginacijom
 // getAllGroupsSidbarDetails ====> /groups/stats GET ---->  top racked, active groups, meetup podcasts posts

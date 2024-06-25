@@ -5,6 +5,8 @@ import {
   getGroupById,
   getGroupContent,
   getGroupMembers,
+  joinGroup,
+  leaveGroup,
   updateGroup,
 } from '@/controllers/group-ctrl';
 import { idSchema } from '@/lib/zod/common';
@@ -15,6 +17,7 @@ import {
   getGroupByIdSchema,
   getGroupContentSchema,
   getGroupMembersSchema,
+  joinOrLeaveGroupSchema,
   updateGroupSchema,
 } from '@/lib/zod/group';
 import {
@@ -48,6 +51,20 @@ groupRoutes.get(
   validateReqParams(idSchema),
   validateReqQuery(getGroupMembersSchema),
   getGroupMembers
+);
+
+groupRoutes.post(
+  '/:id/join',
+  validateReqParams(idSchema),
+  validateReqBody(joinOrLeaveGroupSchema),
+  joinGroup
+);
+
+groupRoutes.delete(
+  '/:id/leave',
+  validateReqParams(idSchema),
+  validateReqBody(joinOrLeaveGroupSchema),
+  leaveGroup
 );
 
 groupRoutes.get(

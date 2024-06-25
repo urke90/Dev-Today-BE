@@ -107,3 +107,11 @@ export const getGroupContentSchema = z.object({
     .uuid('Not valida UUID')
     .length(36, 'User ID must be at least 36 characters long'),
 });
+
+export const joinOrLeaveGroupSchema = z.object({
+  viewerId: z
+    .string()
+    .trim()
+    .uuid('Not valida UUID')
+    .length(36, 'User ID must be at least 36 characters long'),
+});
