@@ -93,6 +93,8 @@ export const getAllGroupsSidbarDetailsSchema = z.object({
 });
 
 export const getGroupMembersSchema = z.object({
+  users: z.literal('true').optional(),
+  admins: z.literal('true').optional(),
   page: z.string().trim().optional(),
   limit: z.string().trim().optional(),
 });

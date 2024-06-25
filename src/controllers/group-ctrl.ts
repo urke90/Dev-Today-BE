@@ -450,18 +450,18 @@ export const getGroupById = async (
   }
 };
 
-type IGetGroupMemebers = Prisma.GroupUserGetPayload<{
-  select: {
-    role: true;
-    user: {
-      select: {
-        id: true;
-        avatarImg: true;
-        userName: true;
-      };
-    };
-  };
-}>;
+// type IGetGroupMemebers = Prisma.GroupUserGetPayload<{
+//   select: {
+//     role: true;
+//     user: {
+//       select: {
+//         id: true;
+//         avatarImg: true;
+//         userName: true;
+//       };
+//     };
+//   };
+// }>;
 
 export const getGroupContent = async (
   req: TypedRequest<typeof idSchema, typeof getGroupContentSchema, any>,
@@ -527,13 +527,28 @@ export const getGroupMembers = async (
 ) => {
   const groupId = req.params.id;
   const page = req.query.page ? Number(req.query.page) : 1;
+  const users = req.query.users;
+  const admins = req.query.admins;
   const itemsPerPage = req.query.limit ? Number(req.query.limit) : 15;
 
+  let where: { [key: string]: any } = {};
+
   try {
-    // TODO continue here
+    if (users === 'true') {
+      where = {
+        role: Role.USER,
+      };
+    }
+    if (admins === 'true') {
+      where = {
+        role: Role.ADMIN,
+      };
+    }
+
     const fetchedMembers = await prisma.groupUser.findMany({
       where: {
         groupId,
+        ...where,
       },
       select: {
         role: true,
@@ -554,6 +569,7 @@ export const getGroupMembers = async (
     const membersCount = await prisma.groupUser.count({
       where: {
         groupId,
+        ...where,
       },
     });
     const totalPages = Math.ceil(membersCount / itemsPerPage);
