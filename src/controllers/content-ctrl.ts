@@ -589,6 +589,9 @@ export const getAllComments = async (
           },
         },
       },
+      orderBy: {
+        createdAt: 'asc',
+      },
     });
 
     const clearComments = comments.map((comment) => {

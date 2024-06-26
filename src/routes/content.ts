@@ -82,17 +82,20 @@ contentRoutes.patch(
   updatePodcast
 );
 
-/***************************************************************** UPDATE ********************************************************** */
-
 /***************************************************************** COMMENTS ********************************************************** */
 
 contentRoutes.post('/comment', validateReqBody(commentsSchema), createComment);
+
 contentRoutes.patch(
-  '/comment',
+  '/comment/update',
   validateRequestBody(commentsSchema),
   updateComment
 );
-contentRoutes.delete('/comment', validateRequestBody(idSchema), deleteComment);
+contentRoutes.delete(
+  '/comment/delete',
+  validateRequestBody(idSchema),
+  deleteComment
+);
 
 contentRoutes.post(
   '/comment/like',
