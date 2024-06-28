@@ -100,13 +100,19 @@ export const getAllGroups = async (
   req: TypedRequestQuery<typeof getAllGroupsSchema>,
   res: Response
 ) => {
+  console.log(
+    'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+  );
   const groupsPerPage = req.query.limit ? Number(req.query.limit) : 4;
   const page = req.query.page ? Number(req.query.page) : 1;
   const q = req.query.q;
   const members = req.query.members;
+  const sortBy = req.query.sortBy;
+  const viewerId = req.query.viewerId;
 
   let where: { [key: string]: any } = {};
   let include: { [key: string]: any } = {};
+  let orderBy: { [key: string]: any } = {};
 
   try {
     if (q?.trim() !== '') {
@@ -122,8 +128,8 @@ export const getAllGroups = async (
                 avatarImg: true,
               },
             },
-            take: 4,
           },
+          take: 4,
         },
         _count: {
           select: {
@@ -133,12 +139,32 @@ export const getAllGroups = async (
       };
     }
 
+    if (sortBy === 'recent') {
+      orderBy = {
+        createdAt: 'desc',
+      };
+    } else if (sortBy === 'popular') {
+      orderBy = {
+        members: {
+          _count: 'desc',
+        },
+      };
+    } else if (sortBy === 'joined') {
+      where = {
+        ...where,
+        members: {
+          some: { userId: viewerId },
+        },
+      };
+    }
+
     const totalGroups = await prisma.group.count();
     const totalPages = Math.ceil(totalGroups / groupsPerPage);
     const hasNextPage = page < totalPages;
 
-    const groups: any = await prisma.group.findMany({
+    const groups = await prisma.group.findMany({
       where,
+      orderBy,
       include,
       take: groupsPerPage,
       skip: (page - 1) * groupsPerPage,
@@ -527,21 +553,15 @@ export const getGroupMembers = async (
 ) => {
   const groupId = req.params.id;
   const page = req.query.page ? Number(req.query.page) : 1;
-  const users = req.query.users;
-  const admins = req.query.admins;
+  const role = req.query.role;
   const itemsPerPage = req.query.limit ? Number(req.query.limit) : 15;
 
   let where: { [key: string]: any } = {};
 
   try {
-    if (users === 'true') {
+    if (role) {
       where = {
-        role: Role.USER,
-      };
-    }
-    if (admins === 'true') {
-      where = {
-        role: Role.ADMIN,
+        role: role === 'user' ? Role.USER : Role.ADMIN,
       };
     }
 
@@ -560,6 +580,8 @@ export const getGroupMembers = async (
           },
         },
       },
+      skip: (page - 1) * itemsPerPage,
+      take: itemsPerPage,
     });
     const members = fetchedMembers.map((member) => ({
       role: member.role,

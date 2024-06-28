@@ -21,3 +21,7 @@ export const viewerIdSchema = z.object({
     .uuid('ID must be unique and uuid')
     .length(36, 'ID must be exactly 36 characters long!'),
 });
+
+export const searchQuerySchema = z.object({
+  q: z.string().trim().optional(),
+});

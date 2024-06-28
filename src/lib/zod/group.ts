@@ -14,10 +14,17 @@ const membersSchema = z.object({
 });
 
 export const getAllGroupsSchema = z.object({
-  page: z.coerce.number().optional(),
+  page: z.string().trim().optional(),
   q: z.string().trim().optional(),
   members: z.literal('true').optional(),
-  limit: z.coerce.number().optional(),
+  limit: z.string().trim().optional(),
+  sortBy: z.enum(['recent', 'popular', 'joined']).optional(),
+  viewerId: z
+    .string()
+    .trim()
+    .uuid('Author ID must be unique and uuid')
+    .length(36, 'Author ID must have 36 characters exactly')
+    .optional(),
 });
 
 /************************************************************ GROUP *******************************************************************/
@@ -93,8 +100,7 @@ export const getAllGroupsSidbarDetailsSchema = z.object({
 });
 
 export const getGroupMembersSchema = z.object({
-  users: z.literal('true').optional(),
-  admins: z.literal('true').optional(),
+  role: z.enum(['user', 'admin']).optional(),
   page: z.string().trim().optional(),
   limit: z.string().trim().optional(),
 });
