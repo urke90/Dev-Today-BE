@@ -559,27 +559,36 @@ export const updatePodcast = async (
 /***************************************************************** COMMENTS ***********************************************************/
 
 export const getAllComments = async (
-  req: TypedRequestParams<typeof idSchema>,
+  req: TypedRequest<typeof idSchema, typeof viewerIdSchema, any>,
   res: Response
 ) => {
   const contentId = req.params.id;
+  const viewerId = req.query.viewerId;
   try {
     const comments = await prisma.comment.findMany({
-      where: {
-        contentId,
-      },
-      include: {
+      where: { contentId, replyingTo: null },
+      select: {
+        id: true,
+        text: true,
+        createdAt: true,
+        updatedAt: true,
+        authorId: true,
+        contentId: true,
+        likes: {
+          select: {
+            id: true,
+          },
+        },
         author: {
           select: {
             userName: true,
             avatarImg: true,
           },
         },
-        replyingTo: {
+        replies: {
           select: {
             text: true,
             createdAt: true,
-            updatedAt: true,
             author: {
               select: {
                 userName: true,
@@ -589,17 +598,18 @@ export const getAllComments = async (
           },
         },
       },
-      orderBy: {
-        createdAt: 'asc',
-      },
+      orderBy: { createdAt: 'asc' },
     });
 
-    const clearComments = comments.map((comment) => {
-      const { replyingToId, ...rest } = comment;
-      return rest;
+    const commentsWithViewerLikeStatus = comments.map((comment) => {
+      const viewerHasLiked = comment.likes.some((like) => like.id === viewerId);
+      return {
+        ...comment,
+        viewerHasLiked,
+      };
     });
 
-    res.status(200).json(clearComments);
+    res.status(200).json(commentsWithViewerLikeStatus);
   } catch (error) {
     console.log('Error fetching comments', error);
     res.status(500).json({ message: 'Internal server error!' });
@@ -713,15 +723,15 @@ export const updateComment = async (
     res.status(500).json({ message: 'Internal server error!' });
   }
 };
-
 export const createUpdateCommentLike = async (
   req: TypedRequestBody<typeof likeCommentsSchema>,
   res: Response
 ) => {
   const { id: commentId, userId } = req.body;
+  console.log(userId, commentId);
 
   try {
-    await prisma.$transaction(async (prisma) => {
+    const result = await prisma.$transaction(async (prisma) => {
       const existingLike = await prisma.comment.findFirst({
         where: {
           id: commentId,
@@ -759,15 +769,19 @@ export const createUpdateCommentLike = async (
             },
           },
         });
+        return true;
       }
     });
 
-    res.status(200).json({ message: 'Like updated successfully!' });
+    res
+      .status(200)
+      .json({ message: 'Like updated successfully!', liked: result });
   } catch (error) {
     console.log('Error updating like', error);
     res.status(500).json({ message: 'Internal server error!' });
   }
 };
+
 /***************************************************************** UPDATE ***********************************************************/
 
 // ! getContent replaced this code ===> Left this just in case we need it later ( )

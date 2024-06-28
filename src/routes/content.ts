@@ -105,5 +105,6 @@ contentRoutes.post(
 contentRoutes.get(
   '/:id/comment',
   validateRequestParams(idSchema),
+  validateReqQuery(viewerIdSchema),
   getAllComments
 );
