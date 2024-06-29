@@ -1,3 +1,4 @@
+import { EContentTypeLowercase } from '@/types/content';
 import z from 'zod';
 
 export const registerSchema = z.object({
@@ -107,13 +108,18 @@ export const createLikeSchema = z.object({
 });
 
 export const getUserContentTypeSchema = z.object({
-  type: z.enum(['post', 'meetup', 'podcast']).optional(),
-  page: z.coerce.number().default(1).optional(),
-  viewerId: z.string().optional(),
+  type: z.nativeEnum(EContentTypeLowercase).optional(),
+  page: z.string().trim().optional(),
+  viewerId: z
+    .string()
+    .trim()
+    .uuid('ID must be unique and uuid')
+    .length(36, 'ID must be exactly 36 characters long!'),
+  limit: z.string().trim().optional(),
 });
 
 export const getUserGroupSchema = z.object({
-  page: z.coerce.number().default(1).optional(),
+  page: z.string().optional(),
 });
 
 export const getAllUsersSchema = z.object({

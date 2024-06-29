@@ -2,7 +2,6 @@ import { Prisma, prisma } from '@/database/prisma-client';
 import {
   createLikeSchema,
   getAllUsersSchema,
-  getUserContentSchema,
   getUserContentTypeSchema,
   getUserGroupSchema,
   loginProviderSchema,
@@ -447,7 +446,9 @@ export const getUserContent = async (
   res: Response
 ) => {
   const id = req.params.id;
-  const { type, page, viewerId } = req.query;
+  const { type, viewerId } = req.query;
+  const page = req.query.page ? Number(req.query.page) : 1;
+  const itemsPerPage = req.query.limit ? Number(req.query.limit) : 6;
 
   try {
     const content = await prisma.content.findMany({
@@ -462,20 +463,29 @@ export const getUserContent = async (
           },
         },
       },
-      skip: page ? (page - 1) * 6 : 0,
-      take: 6,
+      skip: (page - 1) * 6,
+      take: itemsPerPage,
     });
 
     if (!content) return res.status(404).json({ message: 'No content found!' });
 
-    const contentWithLike = content.map((contentItem) => {
-      let isLiked = false;
-      contentItem.likes.length > 0 && (isLiked = true);
+    const contentWithLike = content.map((contentItem) => ({
+      ...contentItem,
+      isLiked: contentItem.likes.length > 0,
+      likes: undefined,
+    }));
 
-      return { ...contentItem, isLiked, likes: undefined };
+    const contentCount = await prisma.content.count({
+      where: {
+        type: type?.toUpperCase() as EContentType,
+      },
     });
+    const totalPages = Math.ceil(contentCount / itemsPerPage);
+    const hasNextPage = page < totalPages;
 
-    res.status(200).json(contentWithLike);
+    res
+      .status(200)
+      .json({ contents: contentWithLike, totalPages, hasNextPage });
   } catch (error) {
     console.log('Error fetching user content', error);
     res
@@ -484,21 +494,18 @@ export const getUserContent = async (
   }
 };
 export const getUserGroups = async (
-  req: TypedRequest<
-    typeof paramsIdSchema,
-    typeof getUserGroupSchema,
-    typeof getUserContentSchema
-  >,
+  req: TypedRequest<typeof paramsIdSchema, typeof getUserGroupSchema, any>,
   res: Response
 ) => {
-  const id = req.params.id;
-  const { page } = req.query;
+  const userId = req.params.id;
+  const page = req.query.page ? Number(req.query.page) : 1;
+  const itemsPerPage = 6;
 
   try {
     // TODO fix types in the controller, remove ANY
     let groupContent: any = await prisma.groupUser.findMany({
       where: {
-        userId: id,
+        userId,
       },
       include: {
         group: {
@@ -522,8 +529,8 @@ export const getUserGroups = async (
           },
         },
       },
-      skip: page ? (page - 1) * 6 : 0,
-      take: 6,
+      skip: (page - 1) * itemsPerPage,
+      take: itemsPerPage,
     });
 
     // TODO fix interfaces/types naming
@@ -537,7 +544,17 @@ export const getUserGroups = async (
       }));
     }
 
-    res.status(200).json(groupContent);
+    console.log('GROUP CONTEN U CONTROLLERU', groupContent);
+
+    const groupCount = await prisma.groupUser.count({
+      where: {
+        userId,
+      },
+    });
+    const totalPages = Math.ceil(groupCount / itemsPerPage);
+    const hasNextPage = page < totalPages;
+
+    res.status(200).json({ groups: groupContent, totalPages, hasNextPage });
   } catch (error) {
     console.log('Error fetching user group content', error);
     res
