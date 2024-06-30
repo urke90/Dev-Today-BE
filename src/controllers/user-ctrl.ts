@@ -493,6 +493,7 @@ export const getUserContent = async (
       .json({ message: 'Oops! An internal server error occurred on our end.' });
   }
 };
+
 export const getUserGroups = async (
   req: TypedRequest<typeof paramsIdSchema, typeof getUserGroupSchema, any>,
   res: Response
