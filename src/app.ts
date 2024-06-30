@@ -7,6 +7,7 @@ import { errorMap } from 'zod-validation-error';
 import { CORS_CONFIG } from '@/config';
 import { contentRoutes } from '@/routes/content';
 import { groupRoutes } from '@/routes/group';
+import { searchRoutes } from '@/routes/search';
 import { userRoutes } from '@/routes/user';
 
 // ----------------------------------------------------------------
@@ -23,6 +24,7 @@ app.use(cors(CORS_CONFIG));
 app.use('/api/groups', groupRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/content', contentRoutes);
+app.use('/api/search', searchRoutes);
 
 const port = process.env.PORT || 8080;
 

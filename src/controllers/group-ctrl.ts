@@ -6,7 +6,9 @@ import {
   getAllGroupsSchema,
   getAllGroupsSidbarDetailsSchema,
   getGroupByIdSchema,
+  getGroupContentSchema,
   getGroupMembersSchema,
+  joinOrLeaveGroupSchema,
   updateGroupSchema,
 } from '@/lib/zod/group';
 import { EContentType, Role } from '@prisma/client';
@@ -98,13 +100,19 @@ export const getAllGroups = async (
   req: TypedRequestQuery<typeof getAllGroupsSchema>,
   res: Response
 ) => {
+  console.log(
+    'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+  );
   const groupsPerPage = req.query.limit ? Number(req.query.limit) : 4;
   const page = req.query.page ? Number(req.query.page) : 1;
   const q = req.query.q;
   const members = req.query.members;
+  const sortBy = req.query.sortBy;
+  const viewerId = req.query.viewerId;
 
   let where: { [key: string]: any } = {};
   let include: { [key: string]: any } = {};
+  let orderBy: { [key: string]: any } = {};
 
   try {
     if (q?.trim() !== '') {
@@ -120,8 +128,8 @@ export const getAllGroups = async (
                 avatarImg: true,
               },
             },
-            take: 4,
           },
+          take: 4,
         },
         _count: {
           select: {
@@ -131,12 +139,32 @@ export const getAllGroups = async (
       };
     }
 
+    if (sortBy === 'recent') {
+      orderBy = {
+        createdAt: 'desc',
+      };
+    } else if (sortBy === 'popular') {
+      orderBy = {
+        members: {
+          _count: 'desc',
+        },
+      };
+    } else if (sortBy === 'joined') {
+      where = {
+        ...where,
+        members: {
+          some: { userId: viewerId },
+        },
+      };
+    }
+
     const totalGroups = await prisma.group.count();
     const totalPages = Math.ceil(totalGroups / groupsPerPage);
     const hasNextPage = page < totalPages;
 
-    const groups: any = await prisma.group.findMany({
+    const groups = await prisma.group.findMany({
       where,
+      orderBy,
       include,
       take: groupsPerPage,
       skip: (page - 1) * groupsPerPage,
@@ -448,18 +476,76 @@ export const getGroupById = async (
   }
 };
 
-type IGetGroupMemebers = Prisma.GroupUserGetPayload<{
-  select: {
-    role: true;
-    user: {
-      select: {
-        id: true;
-        avatarImg: true;
-        userName: true;
-      };
-    };
-  };
-}>;
+// type IGetGroupMemebers = Prisma.GroupUserGetPayload<{
+//   select: {
+//     role: true;
+//     user: {
+//       select: {
+//         id: true;
+//         avatarImg: true;
+//         userName: true;
+//       };
+//     };
+//   };
+// }>;
+
+export const getGroupContent = async (
+  req: TypedRequest<typeof idSchema, typeof getGroupContentSchema, any>,
+  res: Response
+) => {
+  const groupId = req.params.id;
+  const viewerId = req.query.viewerId;
+  const type = req.query.type;
+  const itemsPerPage = req.query.limit ? Number(req.query.limit) : 4;
+  const page = req.query.page ? Number(req.query.page) : 1;
+
+  try {
+    const contents = await prisma.content.findMany({
+      where: {
+        type: type.toUpperCase() as EContentType,
+        groupId,
+      },
+      include: {
+        author: {
+          select: {
+            userName: true,
+          },
+        },
+        likes: {
+          where: {
+            userId: viewerId,
+          },
+        },
+      },
+      skip: (page - 1) * itemsPerPage,
+      take: itemsPerPage,
+    });
+
+    const contentsWithLikes = contents.map((content) => ({
+      ...content,
+      isLiked: content.likes.length > 0,
+      likes: undefined,
+    }));
+
+    const contentCount = await prisma.content.count({
+      where: {
+        groupId,
+        type: type.toUpperCase() as EContentType,
+      },
+    });
+
+    const totalPages = Math.ceil(contentCount / itemsPerPage);
+    const hasNextPage = page < totalPages;
+
+    res
+      .status(200)
+      .json({ contents: contentsWithLikes, totalPages, hasNextPage, page });
+  } catch (error) {
+    console.log('Error getting group', error);
+
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
 
 export const getGroupMembers = async (
   req: TypedRequest<typeof idSchema, typeof getGroupMembersSchema, any>,
@@ -467,13 +553,22 @@ export const getGroupMembers = async (
 ) => {
   const groupId = req.params.id;
   const page = req.query.page ? Number(req.query.page) : 1;
+  const role = req.query.role;
   const itemsPerPage = req.query.limit ? Number(req.query.limit) : 15;
 
+  let where: { [key: string]: any } = {};
+
   try {
-    // TODO continue here
+    if (role) {
+      where = {
+        role: role === 'user' ? Role.USER : Role.ADMIN,
+      };
+    }
+
     const fetchedMembers = await prisma.groupUser.findMany({
       where: {
         groupId,
+        ...where,
       },
       select: {
         role: true,
@@ -485,23 +580,86 @@ export const getGroupMembers = async (
           },
         },
       },
+      skip: (page - 1) * itemsPerPage,
+      take: itemsPerPage,
     });
     const members = fetchedMembers.map((member) => ({
       role: member.role,
       ...member.user,
     }));
 
-    const membersCount = await prisma.groupUser.count();
+    const membersCount = await prisma.groupUser.count({
+      where: {
+        groupId,
+        ...where,
+      },
+    });
     const totalPages = Math.ceil(membersCount / itemsPerPage);
     const hasNextPage = page < totalPages;
 
     res.status(200).json({ members, totalPages, hasNextPage });
   } catch (error) {
+    console.log('Error getting group members', error);
     res.status(500).json({ message: 'Internal server error!' });
   }
 };
 
-export const joinOrLeaveGroup = async (req: Request, res: Response) => {};
+export const joinGroup = async (
+  req: TypedRequest<typeof idSchema, any, typeof joinOrLeaveGroupSchema>,
+  res: Response
+) => {
+  const groupId = req.params.id;
+  const viewerId = req.body.viewerId;
+
+  try {
+    await prisma.groupUser.create({
+      data: {
+        groupId,
+        userId: viewerId,
+      },
+    });
+
+    res.status(201).json({ message: 'User added to the group.' });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2002') {
+        return res
+          .status(409)
+          .json({ message: 'User with provided email already exists!' });
+      }
+    }
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
+
+export const leaveGroup = async (
+  req: TypedRequest<typeof idSchema, any, typeof joinOrLeaveGroupSchema>,
+  res: Response
+) => {
+  const groupId = req.params.id;
+  const viewerId = req.body.viewerId;
+
+  try {
+    const existingMember = await prisma.groupUser.findUnique({
+      where: {
+        userId_groupId: { userId: viewerId, groupId },
+      },
+    });
+
+    if (!existingMember)
+      return res.status(404).json({ message: 'User not founded!' });
+
+    await prisma.groupUser.delete({
+      where: {
+        userId_groupId: { userId: viewerId, groupId },
+      },
+    });
+
+    res.status(200).json({ message: 'User removed from group.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
 
 // getAllGroups ===> /groups GET ----> vraca group cards sa paginacijom
 // getAllGroupsSidbarDetails ====> /groups/stats GET ---->  top racked, active groups, meetup podcasts posts
