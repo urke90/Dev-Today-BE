@@ -1,6 +1,8 @@
 import { idSchema, viewerIdSchema } from '@/lib/zod/common';
 import {
   allContentQuerySchema,
+  commentsSchema,
+  likeCommentsSchema,
   meetupSchema,
   podcastSchema,
   postSchema,
@@ -550,6 +552,232 @@ export const updatePodcast = async (
         res.status(400).json({ message: 'Invalid author or group ID' });
       }
     }
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
+
+/***************************************************************** COMMENTS ***********************************************************/
+
+export const getAllComments = async (
+  req: TypedRequest<typeof idSchema, typeof viewerIdSchema, any>,
+  res: Response
+) => {
+  const contentId = req.params.id;
+  const viewerId = req.query.viewerId;
+  try {
+    const comments = await prisma.comment.findMany({
+      where: { contentId, replyingTo: null },
+      select: {
+        id: true,
+        text: true,
+        createdAt: true,
+        updatedAt: true,
+        authorId: true,
+        contentId: true,
+        likes: {
+          select: {
+            id: true,
+          },
+        },
+        author: {
+          select: {
+            userName: true,
+            avatarImg: true,
+          },
+        },
+        replies: {
+          select: {
+            text: true,
+            createdAt: true,
+            author: {
+              select: {
+                userName: true,
+                avatarImg: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    const commentsWithViewerLikeStatus = comments.map((comment) => {
+      const viewerHasLiked = comment.likes.some((like) => like.id === viewerId);
+      return {
+        ...comment,
+        viewerHasLiked,
+      };
+    });
+
+    res.status(200).json(commentsWithViewerLikeStatus);
+  } catch (error) {
+    console.log('Error fetching comments', error);
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
+
+export const createComment = async (
+  req: TypedRequestBody<typeof commentsSchema>,
+  res: Response
+) => {
+  const { replyingToId, text, authorId, contentId } = req.body;
+
+  try {
+    await prisma.comment.create({
+      data: {
+        text,
+        author: {
+          connect: {
+            id: authorId,
+          },
+        },
+        replyingTo: replyingToId
+          ? {
+              connect: {
+                id: replyingToId,
+              },
+            }
+          : undefined,
+        content: {
+          connect: {
+            id: contentId,
+          },
+        },
+      },
+    });
+    res.status(201).json({ message: 'Comment created successfully!' });
+  } catch (error) {
+    console.log('Error creating comment', error);
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
+
+export const deleteComment = async (
+  req: TypedRequestBody<typeof idSchema>,
+  res: Response
+) => {
+  const commentId = req.body.id;
+
+  try {
+    await prisma.comment.delete({
+      where: {
+        id: commentId,
+      },
+    });
+    res.status(200).json({ message: 'Comment deleted successfully!' });
+  } catch (error) {
+    console.log('Error deleting comment', error);
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
+
+export const updateComment = async (
+  req: TypedRequestBody<typeof commentsSchema>,
+  res: Response
+) => {
+  const { id, replyingToId, text, authorId, contentId } = req.body;
+
+  try {
+    if (replyingToId) {
+      await prisma.comment.update({
+        where: {
+          id: replyingToId,
+        },
+        data: {
+          text,
+          author: {
+            connect: {
+              id: authorId,
+            },
+          },
+          content: {
+            connect: {
+              id: contentId,
+            },
+          },
+        },
+      });
+    } else {
+      await prisma.comment.update({
+        where: {
+          id: id,
+        },
+        data: {
+          text,
+          author: {
+            connect: {
+              id: authorId,
+            },
+          },
+          content: {
+            connect: {
+              id: contentId,
+            },
+          },
+        },
+      });
+    }
+    res.status(201).json({ message: 'Comment updated successfully!' });
+  } catch (error) {
+    console.log('Error updating comment', error);
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
+export const createUpdateCommentLike = async (
+  req: TypedRequestBody<typeof likeCommentsSchema>,
+  res: Response
+) => {
+  const { id: commentId, userId } = req.body;
+  console.log(userId, commentId);
+
+  try {
+    const result = await prisma.$transaction(async (prisma) => {
+      const existingLike = await prisma.comment.findFirst({
+        where: {
+          id: commentId,
+          likes: {
+            some: {
+              id: userId,
+            },
+          },
+        },
+      });
+
+      if (existingLike) {
+        await prisma.comment.update({
+          where: {
+            id: commentId,
+          },
+          data: {
+            likes: {
+              disconnect: {
+                id: userId,
+              },
+            },
+          },
+        });
+      } else {
+        await prisma.comment.update({
+          where: {
+            id: commentId,
+          },
+          data: {
+            likes: {
+              connect: {
+                id: userId,
+              },
+            },
+          },
+        });
+        return true;
+      }
+    });
+
+    res
+      .status(200)
+      .json({ message: 'Like updated successfully!', liked: result });
+  } catch (error) {
+    console.log('Error updating like', error);
     res.status(500).json({ message: 'Internal server error!' });
   }
 };
