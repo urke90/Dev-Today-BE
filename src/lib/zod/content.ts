@@ -138,6 +138,13 @@ export const updatePodcastSchema = contentUpdateBaseSchema.extend({
     .min(2, 'Title must be at least 2 characters long!'),
 });
 
+export const getAllContentSidebarDetailsSchema = z.object({
+  posts: z.literal('true').optional(),
+  meetups: z.literal('true').optional(),
+  podcasts: z.literal('true').optional(),
+  type: z.nativeEnum(EContentTypeLowercase).optional(),
+});
+
 // const contentUpdateBaseSchema = z.object({
 //   title: z
 //     .string()

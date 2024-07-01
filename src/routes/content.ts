@@ -9,6 +9,7 @@ import {
   getAllTags,
   getContent,
   getContentById,
+  getContentStatsSidebar,
   updateComment,
   updateMeetup,
   updatePodcast,
@@ -18,6 +19,7 @@ import { idSchema, viewerIdSchema } from '@/lib/zod/common';
 import {
   allContentQuerySchema,
   commentsSchema,
+  getAllContentSidebarDetailsSchema,
   meetupSchema,
   podcastSchema,
   postSchema,
@@ -43,6 +45,12 @@ export const contentRoutes = express.Router();
 contentRoutes.get('/', validateReqQuery(allContentQuerySchema), getContent);
 
 contentRoutes.get('/tags', validateReqQuery(tagsTitleSchema), getAllTags);
+
+contentRoutes.get(
+  '/stats',
+  validateReqQuery(getAllContentSidebarDetailsSchema),
+  getContentStatsSidebar
+);
 
 contentRoutes.get('/:id', validateReqParams(idSchema), getContentById);
 
@@ -102,6 +110,7 @@ contentRoutes.post(
   validateReqBody(idSchema),
   createUpdateCommentLike
 );
+
 contentRoutes.get(
   '/:id/comment',
   validateRequestParams(idSchema),
