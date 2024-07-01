@@ -4,29 +4,6 @@ import z from 'zod';
 
 // ----------------------------------------------------------------
 
-/**
- * ! COMMON
- * 1. title: string; DA
- * 2. type: 'POST'| 'POST' | 'PODCAST'; DA
- * 3. groupId: id DA
- * 4. coverImage: string;
- * 5. description: string;
- * 6. tags: string[];
- */
-
-/**
- * ! SPECIFIC
- * 1. meetupLocation: string
- * ! 2.  meetupCordinates ===> yet to see { lat: number, lng: number }???
- * 3. meetupDate: Date
- * 4. podcastFile : File ===> just url to the cloudinary file
- * 5. podcastTitle: string
- * 6. viewsCount: number;
- * 7. likesCount: number;
- * 8. commentsCount: number;
- * 9. comments: IContent
- */
-
 export const contentTypeSchema = z.object({
   type: z.nativeEnum(EContentTypeLowercase),
 });
@@ -35,6 +12,12 @@ export const allContentQuerySchema = z.object({
   type: z.nativeEnum(EContentTypeLowercase),
   page: z.string().trim().optional(),
   limit: z.string().trim().optional(),
+  viewerId: z
+    .string()
+    .trim()
+    .uuid('ID must be unique and uuid')
+    .length(36, 'ID must be exactly 36 characters long!'),
+  sortBy: z.enum(['recent', 'popular', 'following']).optional(),
 });
 
 export const tagsTitleSchema = z.object({

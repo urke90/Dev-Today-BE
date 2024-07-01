@@ -27,42 +27,71 @@ export const getContent = async (
   req: TypedRequestQuery<typeof allContentQuerySchema>,
   res: Response
 ) => {
+  // console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
   const type = (req.query.type as string)?.toUpperCase() as EContentType;
   const page = req.query.page ? Number(req.query.page) : 1;
-  const limit = req.query.limit ? Number(req.query.limit) : 4;
+  const itemsPerPage = req.query.limit ? Number(req.query.limit) : 4;
+  const viewerId = req.query.viewerId;
+  const sortBy = req.query.sortBy;
 
-  let include: { [key: string]: any } = {
-    tags: true,
-  };
-
-  if (type === EContentType.POST || type === EContentType.PODCAST) {
-    include = {
-      ...include,
-      author: {
-        select: {
-          avatarImg: true,
-          userName: true,
-        },
-      },
-    };
-  }
+  let include: { [key: string]: any } = {};
+  let orderBy: { [key: string]: any } = {};
+  let where: { [key: string]: any } = {};
 
   try {
-    const fetchedContent = await prisma.content.findMany({
-      where: {
-        type,
-      },
-      include: {
-        ...include,
-      },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
-
-    let content = [];
+    if (sortBy === 'recent') {
+      orderBy = {
+        createdAt: 'desc',
+      };
+    } else if (sortBy === 'popular') {
+      orderBy = {
+        likesCount: 'desc',
+      };
+    }
+    //  else if (sortBy === 'following') {
+    //   where = {
+    //     ...where,
+    //     members: {
+    //       some: { userId: viewerId },
+    //     },
+    //   };
+    // }
 
     if (type === EContentType.POST) {
-      content = fetchedContent.map(
+      where = {
+        type: EContentType.POST,
+      };
+    } else if (type === EContentType.MEETUP) {
+      where = {
+        type: EContentType.MEETUP,
+      };
+    } else if (type === EContentType.PODCAST) {
+      where = {
+        type: EContentType.PODCAST,
+      };
+    }
+
+    const fetchedContent = await prisma.content.findMany({
+      where,
+      include: {
+        tags: true,
+        ...include,
+        author: {
+          select: {
+            avatarImg: true,
+            userName: true,
+          },
+        },
+      },
+      orderBy,
+      skip: (page - 1) * itemsPerPage,
+      take: itemsPerPage,
+    });
+
+    let contents = [];
+
+    if (type === EContentType.POST) {
+      contents = fetchedContent.map(
         ({
           id,
           title,
@@ -88,7 +117,7 @@ export const getContent = async (
         })
       );
     } else if (type === EContentType.MEETUP) {
-      content = fetchedContent.map(
+      contents = fetchedContent.map(
         ({
           id,
           title,
@@ -108,7 +137,7 @@ export const getContent = async (
         })
       );
     } else {
-      content = fetchedContent.map(
+      contents = fetchedContent.map(
         ({ id, title, description, coverImage, tags, author, createdAt }) => ({
           id,
           title,
@@ -121,7 +150,16 @@ export const getContent = async (
       );
     }
 
-    res.status(200).json(content);
+    const contentCount = await prisma.content.count({
+      where,
+    });
+
+    const totalPages = Math.ceil(contentCount / itemsPerPage);
+    const hasNextPage = page < totalPages;
+
+    console.log('CONTENT U CTRL', contents);
+
+    res.status(200).json({ contents, totalPages, hasNextPage });
   } catch (error) {
     console.log('Error fetching content');
     res.status(500).json({ message: 'Internal server error!' });

@@ -1,5 +1,6 @@
 import {
   createGroup,
+  deleteGroup,
   getAllGroups,
   getAllGroupsSidbarDetails,
   getGroupById,
@@ -9,7 +10,7 @@ import {
   leaveGroup,
   updateGroup,
 } from '@/controllers/group-ctrl';
-import { idSchema } from '@/lib/zod/common';
+import { idSchema, viewerIdSchema } from '@/lib/zod/common';
 import {
   createGroupSchema,
   getAllGroupsSchema,
@@ -72,6 +73,13 @@ groupRoutes.get(
   validateReqParams(idSchema),
   validateReqQuery(getGroupContentSchema),
   getGroupContent
+);
+
+groupRoutes.delete(
+  '/',
+  validateReqParams(idSchema),
+  validateReqQuery(viewerIdSchema),
+  deleteGroup
 );
 
 groupRoutes.post('/', validateReqBody(createGroupSchema), createGroup);
