@@ -837,6 +837,7 @@ export const getContentStatsSidebar = async (
         select: {
           id: true,
           title: true,
+          type: true,
           coverImage: true,
           author: {
             select: {
@@ -861,6 +862,7 @@ export const getContentStatsSidebar = async (
         select: {
           id: true,
           title: true,
+          type: true,
           coverImage: true,
           tags: true,
           meetupLocation: true,
@@ -881,6 +883,7 @@ export const getContentStatsSidebar = async (
         select: {
           id: true,
           title: true,
+          type: true,
           coverImage: true,
           author: {
             select: {
