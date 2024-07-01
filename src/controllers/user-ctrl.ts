@@ -545,8 +545,6 @@ export const getUserGroups = async (
       }));
     }
 
-    console.log('GROUP CONTEN U CONTROLLERU', groupContent);
-
     const groupCount = await prisma.groupUser.count({
       where: {
         userId,
