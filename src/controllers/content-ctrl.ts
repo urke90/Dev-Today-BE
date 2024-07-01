@@ -2,6 +2,7 @@ import { idSchema, viewerIdSchema } from '@/lib/zod/common';
 import {
   allContentQuerySchema,
   commentsSchema,
+  getAllContentSidebarDetailsSchema,
   likeCommentsSchema,
   meetupSchema,
   podcastSchema,
@@ -778,6 +779,141 @@ export const createUpdateCommentLike = async (
       .json({ message: 'Like updated successfully!', liked: result });
   } catch (error) {
     console.log('Error updating like', error);
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
+
+export const getContentStatsSidebar = async (
+  req: TypedRequestQuery<typeof getAllContentSidebarDetailsSchema>,
+  res: Response
+) => {
+  let { posts, meetups, podcasts } = req.query;
+  let postsData, meetupsData, podcastsData;
+
+  try {
+    if (posts === 'true') {
+      postsData = await prisma.content.findMany({
+        where: {
+          type: EContentType.POST,
+        },
+        select: {
+          id: true,
+          title: true,
+          coverImage: true,
+          author: {
+            select: {
+              userName: true,
+            },
+          },
+        },
+        take: 5,
+        orderBy: {
+          likes: {
+            _count: 'desc',
+          },
+        },
+      });
+    }
+
+    if (meetups === 'true') {
+      meetupsData = await prisma.content.findMany({
+        where: {
+          type: EContentType.MEETUP,
+        },
+        select: {
+          id: true,
+          title: true,
+          coverImage: true,
+          tags: true,
+          meetupLocation: true,
+          meetupDate: true,
+        },
+        orderBy: {
+          meetupDate: 'desc',
+        },
+        take: 5,
+      });
+    }
+
+    if (podcasts === 'true') {
+      podcastsData = await prisma.content.findMany({
+        where: {
+          type: EContentType.PODCAST,
+        },
+        select: {
+          id: true,
+          title: true,
+          coverImage: true,
+          author: {
+            select: {
+              userName: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: 5,
+      });
+    }
+
+    const popularTags = await prisma.tag.findMany({
+      select: {
+        id: true,
+        title: true,
+        _count: {
+          select: {
+            contents: true,
+          },
+        },
+      },
+      orderBy: {
+        contents: {
+          _count: 'desc',
+        },
+      },
+      take: 5,
+    });
+
+    const popularTagsSorted = popularTags.map((tag) => ({
+      id: tag.id,
+      title: tag.title,
+      count: tag._count.contents,
+    }));
+
+    const popularGroups = await prisma.group.findMany({
+      select: {
+        id: true,
+        name: true,
+        _count: {
+          select: {
+            contents: true,
+          },
+        },
+      },
+      orderBy: {
+        contents: {
+          _count: 'desc',
+        },
+      },
+      take: 5,
+    });
+
+    const popularGroupsSorted = popularGroups.map((group) => ({
+      id: group.id,
+      name: group.name,
+      count: group._count.contents,
+    }));
+
+    res.status(200).json({
+      popularTagsSorted,
+      popularGroupsSorted,
+      posts: postsData,
+      meetups: meetupsData,
+      podcasts: podcastsData,
+    });
+  } catch (error) {
+    console.log('Error fetching content stats', error);
     res.status(500).json({ message: 'Internal server error!' });
   }
 };
