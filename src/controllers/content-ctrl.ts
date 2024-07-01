@@ -158,8 +158,6 @@ export const getContent = async (
     const totalPages = Math.ceil(contentCount / itemsPerPage);
     const hasNextPage = page < totalPages;
 
-    console.log('CONTENT U CTRL', contents);
-
     res.status(200).json({ contents, totalPages, hasNextPage });
   } catch (error) {
     console.log('Error fetching content');
@@ -926,6 +924,7 @@ export const getContentStatsSidebar = async (
       select: {
         id: true,
         name: true,
+        profileImage: true,
         _count: {
           select: {
             contents: true,
@@ -944,6 +943,7 @@ export const getContentStatsSidebar = async (
       id: group.id,
       name: group.name,
       count: group._count.contents,
+      profileImage: group.profileImage,
     }));
 
     res.status(200).json({
