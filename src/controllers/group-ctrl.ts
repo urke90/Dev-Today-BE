@@ -107,9 +107,6 @@ export const getAllGroups = async (
   const sortBy = req.query.sortBy;
   const viewerId = req.query.viewerId;
 
-  console.log('q', q);
-  console.log('viewerId', viewerId);
-
   let where: { [key: string]: any } = {};
   let include: { [key: string]: any } = {};
   let orderBy: { [key: string]: any } = {};
@@ -158,12 +155,9 @@ export const getAllGroups = async (
       };
     }
 
-    console.log('WHERE', where);
-
     const totalGroups = await prisma.group.count({
       where,
     });
-    console.log('totalPages', totalGroups);
     const totalPages = Math.ceil(totalGroups / groupsPerPage);
     const hasNextPage = page < totalPages;
 

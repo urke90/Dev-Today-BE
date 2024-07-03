@@ -23,7 +23,8 @@ export const getAllGroupsSchema = z.object({
     .string()
     .trim()
     .uuid('Author ID must be unique and uuid')
-    .length(36, 'Author ID must have 36 characters exactly'),
+    .length(36, 'Author ID must have 36 characters exactly')
+    .optional(),
 });
 
 /************************************************************ GROUP *******************************************************************/
