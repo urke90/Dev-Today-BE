@@ -9,6 +9,7 @@ import {
   getGroupContentSchema,
   getGroupMembersSchema,
   joinOrLeaveGroupSchema,
+  removeUserFromGroupSchema,
   updateGroupSchema,
 } from '@/lib/zod/group';
 import { EContentType, Role } from '@prisma/client';
@@ -107,9 +108,6 @@ export const getAllGroups = async (
   const sortBy = req.query.sortBy;
   const viewerId = req.query.viewerId;
 
-  console.log('q', q);
-  console.log('viewerId', viewerId);
-
   let where: { [key: string]: any } = {};
   let include: { [key: string]: any } = {};
   let orderBy: { [key: string]: any } = {};
@@ -158,12 +156,9 @@ export const getAllGroups = async (
       };
     }
 
-    console.log('WHERE', where);
-
     const totalGroups = await prisma.group.count({
       where,
     });
-    console.log('totalPages', totalGroups);
     const totalPages = Math.ceil(totalGroups / groupsPerPage);
     const hasNextPage = page < totalPages;
 
@@ -667,11 +662,14 @@ export const leaveGroup = async (
 };
 
 export const deleteGroup = async (
-  req: TypedRequest<typeof idSchema, typeof viewerIdSchema, any>,
+  req: TypedRequest<typeof idSchema, any, typeof viewerIdSchema>,
   res: Response
 ) => {
   const groupId = req.params.id;
-  const viewerId = req.query.viewerId;
+  const viewerId = req.body.viewerId;
+
+  console.log('groupId', groupId);
+  console.log('viewerId', viewerId);
 
   try {
     const group = await prisma.group.findUnique({
@@ -694,6 +692,53 @@ export const deleteGroup = async (
     });
 
     res.status(200).json({ message: 'Group deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
+
+export const removeUserFromGroup = async (
+  req: TypedRequest<typeof idSchema, any, typeof removeUserFromGroupSchema>,
+  res: Response
+) => {
+  try {
+    const groupId = req.params.id;
+    const { viewerId, userId: userToRemoveId } = req.body;
+
+    const group = await prisma.group.findUnique({
+      where: {
+        id: groupId,
+      },
+      include: {
+        members: true,
+      },
+    });
+
+    if (!group) return res.status(404).json({ message: 'Group not found!' });
+
+    const isAdmin = group.members.some(
+      (member) => member.userId === viewerId && member.role === Role.ADMIN
+    );
+
+    if (!isAdmin)
+      return res
+        .status(403)
+        .json({
+          message: 'You do not have permission to remove users from the group.',
+        });
+
+    await prisma.groupUser.delete({
+      where: {
+        userId_groupId: {
+          userId: userToRemoveId,
+          groupId,
+        },
+      },
+    });
+
+    res
+      .status(200)
+      .json({ message: 'User successfully removed from the group.' });
   } catch (error) {
     res.status(500).json({ message: 'Internal server error!' });
   }

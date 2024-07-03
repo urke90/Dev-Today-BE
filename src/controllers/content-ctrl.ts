@@ -28,7 +28,6 @@ export const getContent = async (
   req: TypedRequestQuery<typeof allContentQuerySchema>,
   res: Response
 ) => {
-  // console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
   const type = (req.query.type as string)?.toUpperCase() as EContentType;
   const page = req.query.page ? Number(req.query.page) : 1;
   const itemsPerPage = req.query.limit ? Number(req.query.limit) : 4;
@@ -48,32 +47,32 @@ export const getContent = async (
       orderBy = {
         likesCount: 'desc',
       };
+    } else if (sortBy === 'following') {
+      where = {
+        ...where,
+        author: {
+          followers: {
+            some: {
+              followerId: viewerId,
+            },
+          },
+        },
+      };
+      orderBy = {
+        createdAt: 'desc',
+      };
     }
-    //  else if (sortBy === 'following') {
-    //   where = {
-    //     ...where,
-    //     members: {
-    //       some: { userId: viewerId },
-    //     },
-    //   };
-    // }
 
-    if (type === EContentType.POST) {
+    if (type) {
       where = {
-        type: EContentType.POST,
-      };
-    } else if (type === EContentType.MEETUP) {
-      where = {
-        type: EContentType.MEETUP,
-      };
-    } else if (type === EContentType.PODCAST) {
-      where = {
-        type: EContentType.PODCAST,
+        ...where,
+        type,
       };
     }
 
     const fetchedContent = await prisma.content.findMany({
       where,
+      orderBy,
       include: {
         tags: true,
         ...include,
@@ -84,72 +83,46 @@ export const getContent = async (
           },
         },
       },
-      orderBy,
       skip: (page - 1) * itemsPerPage,
       take: itemsPerPage,
     });
 
-    let contents = [];
-
-    if (type === EContentType.POST) {
-      contents = fetchedContent.map(
-        ({
-          id,
-          title,
-          description,
-          coverImage,
-          tags,
-          viewsCount,
-          likesCount,
-          commentsCount,
-          author,
-          createdAt,
-        }) => ({
-          id,
-          title,
-          description,
-          coverImage,
-          tags,
-          viewsCount,
-          likesCount,
-          commentsCount,
-          author,
-          createdAt,
-        })
-      );
-    } else if (type === EContentType.MEETUP) {
-      contents = fetchedContent.map(
-        ({
-          id,
-          title,
-          description,
-          coverImage,
-          tags,
-          meetupLocation,
-          meetupDate,
-        }) => ({
-          id,
-          title,
-          description,
-          coverImage,
-          tags,
-          meetupLocation,
-          meetupDate,
-        })
-      );
-    } else {
-      contents = fetchedContent.map(
-        ({ id, title, description, coverImage, tags, author, createdAt }) => ({
-          id,
-          title,
-          description,
-          coverImage,
-          tags,
-          author,
-          createdAt,
-        })
-      );
-    }
+    const contents = fetchedContent.map((content) => {
+      if (content.type === EContentType.POST) {
+        return {
+          id: content.id,
+          title: content.title,
+          description: content.description,
+          coverImage: content.coverImage,
+          tags: content.tags,
+          viewsCount: content.viewsCount,
+          likesCount: content.likesCount,
+          commentsCount: content.commentsCount,
+          author: content.author,
+          createdAt: content.createdAt,
+        };
+      } else if (content.type === EContentType.MEETUP) {
+        return {
+          id: content.id,
+          title: content.title,
+          description: content.description,
+          coverImage: content.coverImage,
+          tags: content.tags,
+          meetupLocation: content.meetupLocation,
+          meetupDate: content.meetupDate,
+        };
+      } else if (content.type === EContentType.PODCAST) {
+        return {
+          id: content.id,
+          title: content.title,
+          description: content.description,
+          coverImage: content.coverImage,
+          tags: content.tags,
+          author: content.author,
+          createdAt: content.createdAt,
+        };
+      }
+    });
 
     const contentCount = await prisma.content.count({
       where,
@@ -157,8 +130,6 @@ export const getContent = async (
 
     const totalPages = Math.ceil(contentCount / itemsPerPage);
     const hasNextPage = page < totalPages;
-
-    console.log('CONTENT U CTRL', contents);
 
     res.status(200).json({ contents, totalPages, hasNextPage });
   } catch (error) {
@@ -825,7 +796,7 @@ export const getContentStatsSidebar = async (
   req: TypedRequestQuery<typeof getAllContentSidebarDetailsSchema>,
   res: Response
 ) => {
-  let { posts, meetups, podcasts } = req.query;
+  let { posts, meetups, podcasts, viewerId } = req.query;
   let postsData, meetupsData, podcastsData;
 
   try {
@@ -940,6 +911,16 @@ export const getContentStatsSidebar = async (
       take: 5,
     });
 
+    const followingUsersCount = await prisma.user.count({
+      where: {
+        followers: {
+          some: {
+            followerId: viewerId,
+          },
+        },
+      },
+    });
+
     const popularGroupsSorted = popularGroups.map((group) => ({
       id: group.id,
       name: group.name,
@@ -952,6 +933,7 @@ export const getContentStatsSidebar = async (
       posts: postsData,
       meetups: meetupsData,
       podcasts: podcastsData,
+      followingUsersCount,
     });
   } catch (error) {
     console.log('Error fetching content stats', error);
@@ -960,101 +942,3 @@ export const getContentStatsSidebar = async (
 };
 
 /***************************************************************** UPDATE ***********************************************************/
-
-// ! getContent replaced this code ===> Left this just in case we need it later ( )
-// export const getPosts = async (req: Request, res: Response) => {
-//   try {
-//     const content = await prisma.content.findMany({
-//       where: {
-//         type: EContentType.POST,
-//       },
-//     });
-
-//     let modifiedContent = content.map(
-//       ({
-//         id,
-//         title,
-//         description,
-//         coverImage,
-//         tags,
-//         viewsCount,
-//         likesCount,
-//         commentsCount,
-//       }) => ({
-//         id,
-//         title,
-//         description,
-//         coverImage,
-//         tags,
-//         viewsCount,
-//         likesCount,
-//         commentsCount,
-//       })
-//     );
-
-//     console.log('modifiedContent', modifiedContent);
-
-//     res.status(200).json({ content: modifiedContent });
-//   } catch (error) {
-//     console.log('Error fetching posts');
-//     res.status(500).json({ message: 'Internal server error!' });
-//   }
-// };
-
-// export const getMeetups = async (req: Request, res: Response) => {
-//   try {
-//     const content = await prisma.content.findMany({
-//       where: {
-//         type: EContentType.MEETUP,
-//       },
-//     });
-
-//     const modifiedContent = content.map(
-//       ({
-//         id,
-//         title,
-//         description,
-//         coverImage,
-//         tags,
-//         meetupLocation,
-//         meetupDate,
-//       }) => ({
-//         id,
-//         title,
-//         description,
-//         coverImage,
-//         tags,
-//         meetupLocation,
-//         meetupDate,
-//       })
-//     );
-//     res.status(200).json({ content: modifiedContent });
-//   } catch (error) {
-//     console.log('Error fetching meetups', error);
-//     res.status(500).json({ message: 'Internal server error!' });
-//   }
-// };
-
-// export const getPodcasts = async (req: Request, res: Response) => {
-//   try {
-//     const content = await prisma.content.findMany({
-//       where: {
-//         type: EContentType.PODCAST,
-//       },
-//     });
-
-//     const modifiedContent = content.map(
-//       ({ id, title, description, coverImage, tags }) => ({
-//         id,
-//         title,
-//         description,
-//         coverImage,
-//         tags,
-//       })
-//     );
-
-//     res.status(200).json({ content: modifiedContent });
-//   } catch (error) {
-//     res.status(500).json({ message: 'Internal server error!' });
-//   }
-// };

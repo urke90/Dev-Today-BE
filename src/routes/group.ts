@@ -8,6 +8,7 @@ import {
   getGroupMembers,
   joinGroup,
   leaveGroup,
+  removeUserFromGroup,
   updateGroup,
 } from '@/controllers/group-ctrl';
 import { idSchema, viewerIdSchema } from '@/lib/zod/common';
@@ -19,6 +20,7 @@ import {
   getGroupContentSchema,
   getGroupMembersSchema,
   joinOrLeaveGroupSchema,
+  removeUserFromGroupSchema,
   updateGroupSchema,
 } from '@/lib/zod/group';
 import {
@@ -40,11 +42,11 @@ groupRoutes.get(
   getAllGroupsSidbarDetails
 );
 
-groupRoutes.get(
-  '/:id',
+groupRoutes.delete(
+  '/:id/delete',
   validateReqParams(idSchema),
-  validateReqQuery(getGroupByIdSchema),
-  getGroupById
+  validateReqBody(viewerIdSchema),
+  deleteGroup
 );
 
 groupRoutes.get(
@@ -68,6 +70,13 @@ groupRoutes.delete(
   leaveGroup
 );
 
+groupRoutes.delete(
+  '/:id/user',
+  validateReqParams(idSchema),
+  validateReqBody(removeUserFromGroupSchema),
+  removeUserFromGroup
+);
+
 groupRoutes.get(
   '/:id/content',
   validateReqParams(idSchema),
@@ -75,14 +84,14 @@ groupRoutes.get(
   getGroupContent
 );
 
-groupRoutes.delete(
-  '/',
-  validateReqParams(idSchema),
-  validateReqQuery(viewerIdSchema),
-  deleteGroup
-);
-
 groupRoutes.post('/', validateReqBody(createGroupSchema), createGroup);
+
+groupRoutes.get(
+  '/:id',
+  validateReqParams(idSchema),
+  validateReqQuery(getGroupByIdSchema),
+  getGroupById
+);
 
 groupRoutes.patch(
   '/:id',

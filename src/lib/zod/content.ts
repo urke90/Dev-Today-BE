@@ -143,6 +143,11 @@ export const getAllContentSidebarDetailsSchema = z.object({
   meetups: z.literal('true').optional(),
   podcasts: z.literal('true').optional(),
   type: z.nativeEnum(EContentTypeLowercase).optional(),
+  viewerId: z
+    .string()
+    .trim()
+    .uuid('ID must be unique and uuid')
+    .length(36, 'ID must be exactly 36 characters long!'),
 });
 
 // const contentUpdateBaseSchema = z.object({
