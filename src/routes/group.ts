@@ -1,4 +1,5 @@
 import {
+  assignAdminRole,
   createGroup,
   deleteGroup,
   getAllGroups,
@@ -8,6 +9,7 @@ import {
   getGroupMembers,
   joinGroup,
   leaveGroup,
+  removeAdminRole,
   removeUserFromGroup,
   updateGroup,
 } from '@/controllers/group-ctrl';
@@ -19,8 +21,8 @@ import {
   getGroupByIdSchema,
   getGroupContentSchema,
   getGroupMembersSchema,
+  groupMemebersActionsSchema,
   joinOrLeaveGroupSchema,
-  removeUserFromGroupSchema,
   updateGroupSchema,
 } from '@/lib/zod/group';
 import {
@@ -73,8 +75,22 @@ groupRoutes.delete(
 groupRoutes.delete(
   '/:id/user',
   validateReqParams(idSchema),
-  validateReqBody(removeUserFromGroupSchema),
+  validateReqBody(groupMemebersActionsSchema),
   removeUserFromGroup
+);
+
+groupRoutes.post(
+  '/:id/admin',
+  validateReqParams(idSchema),
+  validateReqBody(groupMemebersActionsSchema),
+  assignAdminRole
+);
+
+groupRoutes.delete(
+  '/:id/admin',
+  validateReqParams(idSchema),
+  validateReqBody(groupMemebersActionsSchema),
+  removeAdminRole
 );
 
 groupRoutes.get(

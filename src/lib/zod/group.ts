@@ -123,7 +123,7 @@ export const joinOrLeaveGroupSchema = z.object({
     .length(36, 'User ID must be at least 36 characters long'),
 });
 
-export const removeUserFromGroupSchema = z.object({
+export const groupMemebersActionsSchema = z.object({
   viewerId: z
     .string()
     .trim()
