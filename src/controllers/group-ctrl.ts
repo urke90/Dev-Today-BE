@@ -8,6 +8,7 @@ import {
   getGroupByIdSchema,
   getGroupContentSchema,
   getGroupMembersSchema,
+  groupMemebersActionsSchema,
   joinOrLeaveGroupSchema,
   updateGroupSchema,
 } from '@/lib/zod/group';
@@ -661,11 +662,14 @@ export const leaveGroup = async (
 };
 
 export const deleteGroup = async (
-  req: TypedRequest<typeof idSchema, typeof viewerIdSchema, any>,
+  req: TypedRequest<typeof idSchema, any, typeof viewerIdSchema>,
   res: Response
 ) => {
   const groupId = req.params.id;
-  const viewerId = req.query.viewerId;
+  const viewerId = req.body.viewerId;
+
+  console.log('groupId', groupId);
+  console.log('viewerId', viewerId);
 
   try {
     const group = await prisma.group.findUnique({
@@ -688,6 +692,142 @@ export const deleteGroup = async (
     });
 
     res.status(200).json({ message: 'Group deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
+
+export const removeUserFromGroup = async (
+  req: TypedRequest<typeof idSchema, any, typeof groupMemebersActionsSchema>,
+  res: Response
+) => {
+  try {
+    const groupId = req.params.id;
+    const { viewerId, userId: userToRemoveId } = req.body;
+
+    const group = await prisma.group.findUnique({
+      where: {
+        id: groupId,
+      },
+      include: {
+        members: true,
+      },
+    });
+
+    if (!group) return res.status(404).json({ message: 'Group not found!' });
+
+    const isAdmin = group.members.some(
+      (member) => member.userId === viewerId && member.role === Role.ADMIN
+    );
+
+    if (!isAdmin)
+      return res.status(403).json({
+        message: 'You do not have permission to remove users from the group.',
+      });
+
+    await prisma.groupUser.delete({
+      where: {
+        userId_groupId: {
+          userId: userToRemoveId,
+          groupId,
+        },
+      },
+    });
+
+    res
+      .status(200)
+      .json({ message: 'User successfully removed from the group.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
+export const assignAdminRole = async (
+  req: TypedRequest<typeof idSchema, any, typeof groupMemebersActionsSchema>,
+  res: Response
+) => {
+  try {
+    const groupId = req.params.id;
+    const { viewerId, userId } = req.body;
+
+    const group = await prisma.group.findUnique({
+      where: {
+        id: groupId,
+      },
+      include: {
+        members: true,
+      },
+    });
+
+    if (!group) return res.status(404).json({ message: 'Group not found!' });
+
+    const isAdmin = group.members.some(
+      (member) => member.userId === viewerId && member.role === Role.ADMIN
+    );
+
+    if (!isAdmin)
+      return res.status(403).json({
+        message: 'You do not have permission to remove users from the group.',
+      });
+
+    await prisma.groupUser.update({
+      where: {
+        userId_groupId: {
+          groupId,
+          userId,
+        },
+      },
+      data: {
+        role: Role.ADMIN,
+      },
+    });
+
+    res.status(200).json({ message: 'Assigned admin role.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
+
+export const removeAdminRole = async (
+  req: TypedRequest<typeof idSchema, any, typeof groupMemebersActionsSchema>,
+  res: Response
+) => {
+  try {
+    const groupId = req.params.id;
+    const { viewerId, userId } = req.body;
+
+    const group = await prisma.group.findUnique({
+      where: {
+        id: groupId,
+      },
+      include: {
+        members: true,
+      },
+    });
+
+    if (!group) return res.status(404).json({ message: 'Group not found!' });
+
+    const isAdmin = group.members.some(
+      (member) => member.userId === viewerId && member.role === Role.ADMIN
+    );
+
+    if (!isAdmin)
+      return res.status(403).json({
+        message: 'You do not have permission to remove users from the group.',
+      });
+
+    await prisma.groupUser.update({
+      where: {
+        userId_groupId: {
+          groupId,
+          userId,
+        },
+      },
+      data: {
+        role: Role.USER,
+      },
+    });
+
+    res.status(200).json({ message: 'Removed admin role.' });
   } catch (error) {
     res.status(500).json({ message: 'Internal server error!' });
   }
