@@ -269,6 +269,7 @@ export const updateUserOnboarding = async (
   }
 };
 
+// ? SHOULD WE SPLIT THEIS INTO FOLLOW AND UNFOLLOW
 export const followUser = async (
   req: TypedRequest<typeof paramsIdSchema, any, typeof userIdSchema>,
   res: Response
@@ -279,41 +280,28 @@ export const followUser = async (
   const { userId } = req.body;
 
   try {
-    if (userId) {
-      const existingFollow = await prisma.followers.findUnique({
+    const existingFollow = await prisma.followers.findUnique({
+      where: {
+        followerId_followingId: { followerId: userId, followingId: id },
+      },
+    });
+
+    if (existingFollow) {
+      await prisma.followers.delete({
         where: {
           followerId_followingId: { followerId: userId, followingId: id },
         },
       });
-      if (existingFollow) {
-        await prisma.followers.delete({
-          where: {
-            followerId_followingId: { followerId: userId, followingId: id },
-          },
-        });
-      } else {
-        await prisma.followers.create({
-          data: {
-            followerId: userId,
-            followingId: id,
-          },
-        });
-      }
+      res.status(200).json({ message: 'User unfollowed!' });
+    } else {
+      await prisma.followers.create({
+        data: {
+          followerId: userId,
+          followingId: id,
+        },
+      });
+      res.status(200).json({ message: 'User followed!' });
     }
-
-    const followersCount = await prisma.followers.count({
-      where: { followingId: id },
-    });
-
-    const followingCount = await prisma.followers.count({
-      where: { followerId: id },
-    });
-
-    res.status(200).json({
-      message: 'User followed!',
-      followersCount,
-      followingCount,
-    });
   } catch (error) {
     console.log('Error following user', error);
     res.status(500).json({
@@ -322,6 +310,7 @@ export const followUser = async (
   }
 };
 
+// ? SHOULD WE SPLIT THIS INTO SEPARATE INTO LIKE AND DISLIKE FUNCTIONS
 export const createLike = async (
   req: TypedRequest<typeof paramsIdSchema, any, typeof createLikeSchema>,
   res: Response
