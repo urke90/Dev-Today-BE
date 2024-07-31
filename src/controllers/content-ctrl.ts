@@ -2,6 +2,7 @@ import { idSchema, viewerIdSchema } from '@/lib/zod/common';
 import {
   allContentQuerySchema,
   commentsSchema,
+  contentIdSchema,
   getAllContentSidebarDetailsSchema,
   likeCommentsSchema,
   meetupSchema,
@@ -941,3 +942,75 @@ export const getContentStatsSidebar = async (
 };
 
 /***************************************************************** UPDATE ***********************************************************/
+
+export const createLike = async (
+  req: TypedRequest<typeof idSchema, any, typeof contentIdSchema>,
+  res: Response
+) => {
+  const id = req.params.id;
+  const { contentId } = req.body;
+  try {
+    const existingLike = await prisma.like.findUnique({
+      where: { userId_contentId: { userId: id, contentId } },
+    });
+    if (existingLike)
+      return res.status(409).json({ message: 'Existing like.' });
+
+    await prisma.$transaction([
+      prisma.like.create({
+        data: {
+          userId: id!,
+          contentId,
+        },
+      }),
+      prisma.content.update({
+        where: { id: contentId },
+        data: {
+          likesCount: {
+            increment: 1,
+          },
+        },
+      }),
+    ]);
+    res.json({ message: 'Liked.' });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Oops! An internal server error occurred on our end.',
+    });
+  }
+};
+
+export const removeLike = async (
+  req: TypedRequest<typeof idSchema, any, typeof contentIdSchema>,
+  res: Response
+) => {
+  const id = req.params.id;
+  const { contentId } = req.body;
+
+  try {
+    const existingLike = await prisma.like.findUnique({
+      where: { userId_contentId: { userId: id, contentId } },
+    });
+    if (!existingLike)
+      return res.status(404).json({ message: 'Liked content is not found.' });
+
+    await prisma.$transaction([
+      prisma.like.delete({
+        where: { userId_contentId: { userId: id, contentId } },
+      }),
+      prisma.content.update({
+        where: { id: contentId },
+        data: {
+          likesCount: {
+            decrement: 1,
+          },
+        },
+      }),
+    ]);
+    res.json({ message: 'Like removed.' });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Oops! An internal server error occurred on our end.',
+    });
+  }
+};

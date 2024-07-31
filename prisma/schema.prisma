@@ -85,7 +85,6 @@ model Like {
   content   Content @relation(fields: [contentId], references: [id])
   contentId String
 
-
   @@id([userId, contentId])
 }
 
@@ -96,21 +95,19 @@ model Tag {
 }
 
 model Comment {
-  id        String    @id @default(uuid())
-  text      String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime? @updatedAt
-  author    User      @relation(fields: [authorId], references: [id])
-  authorId  String
-  contentId String
-  content   Content   @relation(fields: [contentId], references: [id])
-  likes     User[]    @relation("CommentLikes")
-  replyingTo Comment?  @relation("replyingTo",fields: [replyingToId], references: [id])
+  id           String    @id @default(uuid())
+  text         String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime? @updatedAt
+  author       User      @relation(fields: [authorId], references: [id])
+  authorId     String
+  contentId    String
+  content      Content   @relation(fields: [contentId], references: [id])
+  likes        User[]    @relation("CommentLikes")
+  replyingTo   Comment?  @relation("replyingTo", fields: [replyingToId], references: [id])
   replyingToId String?
-  replies   Comment[] @relation("replyingTo")
-
+  replies      Comment[] @relation("replyingTo")
 }
-
 
 model Group {
   id           String      @id @default(uuid())

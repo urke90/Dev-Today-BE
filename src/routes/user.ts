@@ -3,7 +3,6 @@ import express from 'express';
 // import { validateRequestParams } from 'zod-express-middleware';
 
 import {
-  createLike,
   deleteUser,
   followUser,
   getAllUsers,
@@ -14,18 +13,18 @@ import {
   loginUser,
   loginUserWithProvider,
   registerUser,
+  unfollowUser,
   updateUserOnboarding,
   updateUserProfile,
 } from '@/controllers/user-ctrl';
+import { idSchema } from '@/lib/zod/common';
 import {
-  createLikeSchema,
   getUserContentTypeSchema,
   getUserGroupSchema,
   loginProviderSchema,
   loginSchema,
   onboardingSchema,
   paramsEmailSchema,
-  paramsIdSchema,
   profileSchema,
   registerSchema,
   userIdSchema,
@@ -42,41 +41,42 @@ userRoutes.get('/', getAllUsers);
 
 userRoutes.get(
   '/:id',
-  validateReqParams(paramsIdSchema),
+  validateReqParams(idSchema),
   validateReqQuery(profileSchema),
   getUserById
 );
 
 userRoutes.get(
   '/:id/content',
-  validateReqParams(paramsIdSchema),
+  validateReqParams(idSchema),
   validateReqQuery(getUserContentTypeSchema),
   getUserContent
-);
-userRoutes.post(
-  '/content/:id/like',
-  validateReqParams(paramsIdSchema),
-  validateReqBody(createLikeSchema),
-  createLike
 );
 
 userRoutes.get(
   '/:id/groups',
-  validateReqParams(paramsIdSchema),
+  validateReqParams(idSchema),
   validateReqQuery(getUserGroupSchema),
   getUserGroups
 );
 
 userRoutes.post(
   '/:id/follow',
-  validateReqParams(paramsIdSchema),
+  validateReqParams(idSchema),
   validateReqBody(userIdSchema),
   followUser
 );
 
+userRoutes.delete(
+  '/:id/unfollow',
+  validateReqParams(idSchema),
+  validateReqBody(userIdSchema),
+  unfollowUser
+);
+
 userRoutes.patch(
   '/:id',
-  validateReqParams(paramsIdSchema),
+  validateReqParams(idSchema),
   validateReqBody(profileSchema),
   updateUserProfile
 );
@@ -88,8 +88,6 @@ userRoutes.get(
 );
 
 userRoutes.post('/register', validateReqBody(registerSchema), registerUser);
-
-userRoutes.delete('/:id', validateReqParams(paramsIdSchema), deleteUser);
 
 userRoutes.post('/login', validateReqBody(loginSchema), loginUser);
 
@@ -109,3 +107,5 @@ userRoutes.patch(
   validateReqBody(onboardingSchema),
   updateUserOnboarding
 );
+
+userRoutes.delete('/:id', validateReqParams(idSchema), deleteUser);

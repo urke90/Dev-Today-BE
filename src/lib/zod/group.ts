@@ -43,41 +43,18 @@ export const createGroupSchema = z.object({
     .string()
     .trim()
     .url('Please provide valid cover image url!')
-    .optional(),
+    .nullable(),
   coverImage: z
     .string()
     .trim()
     .url('Please provide valid cover image url!')
-    .optional(),
-  bio: z.string().trim().min(1, 'Bio must be at least 1 character long!'),
+    .nullable(),
+  bio: z.string().trim().min(3, 'Bio must be at least 1 character long!'),
   members: z.array(membersSchema).optional(),
 });
 
-export const updateGroupSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, 'Group name must be at least 1 character long!')
-    .optional(),
-  profileImage: z
-    .string()
-    .trim()
-    .url('Please provide valid cover image url!')
-    .optional(),
-  coverImage: z
-    .string()
-    .trim()
-    .url('Please provide valid cover image url!')
-    .optional(),
-  bio: z
-    .string()
-    .trim()
-    .min(1, 'Bio must be at least 1 character long!')
-    .optional(),
-  members: z
-    .array(membersSchema)
-    .min(1, 'Group must have at least one member!')
-    .optional(),
+export const updateGroupSchema = createGroupSchema.omit({
+  members: true,
 });
 
 /************************************************************ GROUP *******************************************************************/

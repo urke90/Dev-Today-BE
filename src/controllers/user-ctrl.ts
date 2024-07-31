@@ -1,6 +1,6 @@
 import { Prisma, prisma } from '@/database/prisma-client';
+import { idSchema } from '@/lib/zod/common';
 import {
-  createLikeSchema,
   getAllUsersSchema,
   getUserContentTypeSchema,
   getUserGroupSchema,
@@ -8,7 +8,6 @@ import {
   loginSchema,
   onboardingSchema,
   paramsEmailSchema,
-  paramsIdSchema,
   profileSchema,
   registerSchema,
   userIdSchema,
@@ -177,7 +176,7 @@ export const loginUser = async (
 };
 
 export const deleteUser = async (
-  req: TypedRequestParams<typeof paramsIdSchema>,
+  req: TypedRequestParams<typeof idSchema>,
   res: Response
 ) => {
   const id = req.params.id;
@@ -229,7 +228,7 @@ export const loginUserWithProvider = async (
 
 export const updateUserOnboarding = async (
   // TODO: have to fix "any" since
-  req: TypedRequest<typeof paramsIdSchema, any, typeof onboardingSchema>,
+  req: TypedRequest<typeof idSchema, any, typeof onboardingSchema>,
   res: Response
 ) => {
   const id = req.params.id;
@@ -269,9 +268,8 @@ export const updateUserOnboarding = async (
   }
 };
 
-// ? SHOULD WE SPLIT THEIS INTO FOLLOW AND UNFOLLOW
 export const followUser = async (
-  req: TypedRequest<typeof paramsIdSchema, any, typeof userIdSchema>,
+  req: TypedRequest<typeof idSchema, any, typeof userIdSchema>,
   res: Response
 ) => {
   // id is the person we want to follow
@@ -286,22 +284,17 @@ export const followUser = async (
       },
     });
 
-    if (existingFollow) {
-      await prisma.followers.delete({
-        where: {
-          followerId_followingId: { followerId: userId, followingId: id },
-        },
-      });
-      res.status(200).json({ message: 'User unfollowed!' });
-    } else {
-      await prisma.followers.create({
-        data: {
-          followerId: userId,
-          followingId: id,
-        },
-      });
-      res.status(200).json({ message: 'User followed!' });
-    }
+    if (existingFollow)
+      return res.status(409).json({ message: 'User is already followed.' });
+
+    await prisma.followers.create({
+      data: {
+        followerId: userId,
+        followingId: id,
+      },
+    });
+
+    res.status(200).json({ message: 'User followed!' });
   } catch (error) {
     console.log('Error following user', error);
     res.status(500).json({
@@ -310,52 +303,32 @@ export const followUser = async (
   }
 };
 
-// ? SHOULD WE SPLIT THIS INTO SEPARATE INTO LIKE AND DISLIKE FUNCTIONS
-export const createLike = async (
-  req: TypedRequest<typeof paramsIdSchema, any, typeof createLikeSchema>,
+export const unfollowUser = async (
+  req: TypedRequest<typeof idSchema, any, typeof userIdSchema>,
   res: Response
 ) => {
-  const id = req.params.id;
-  const { contentId } = req.body;
+  // id is the person we want to follow
+  const { id } = req.params;
+  // userId is viewerID (user loged in)
+  const { userId } = req.body;
+
   try {
-    const existingLike = await prisma.like.findUnique({
-      where: { userId_contentId: { userId: id!, contentId } },
+    const existingFollow = await prisma.followers.findUnique({
+      where: {
+        followerId_followingId: { followerId: userId, followingId: id },
+      },
     });
-    if (existingLike) {
-      await prisma.$transaction([
-        prisma.like.delete({
-          where: { userId_contentId: { userId: id!, contentId } },
-        }),
-        prisma.content.update({
-          where: { id: contentId },
-          data: {
-            likesCount: {
-              decrement: 1,
-            },
-          },
-        }),
-      ]);
-      res.json({ message: 'Like removed!' });
-    } else {
-      await prisma.$transaction([
-        prisma.like.create({
-          data: {
-            userId: id!,
-            contentId,
-          },
-        }),
-        prisma.content.update({
-          where: { id: contentId },
-          data: {
-            likesCount: {
-              increment: 1,
-            },
-          },
-        }),
-      ]);
-      res.json({ message: 'Like has been added.' });
-    }
+    if (!existingFollow)
+      return res.status(404).json({ message: 'User is not followed.' });
+
+    await prisma.followers.delete({
+      where: {
+        followerId_followingId: { followerId: userId, followingId: id },
+      },
+    });
+    res.status(200).json({ message: 'User unfollowed.' });
   } catch (error) {
+    console.log('Error unfollowing user', error);
     res.status(500).json({
       message: 'Oops! An internal server error occurred on our end.',
     });
@@ -363,7 +336,7 @@ export const createLike = async (
 };
 
 export const getUserById = async (
-  req: TypedRequest<typeof paramsIdSchema, typeof profileSchema, any>,
+  req: TypedRequest<typeof idSchema, typeof profileSchema, any>,
   res: Response
 ) => {
   // User profile viewed
@@ -427,11 +400,7 @@ export const getUserById = async (
 };
 
 export const getUserContent = async (
-  req: TypedRequest<
-    typeof paramsIdSchema,
-    typeof getUserContentTypeSchema,
-    any
-  >,
+  req: TypedRequest<typeof idSchema, typeof getUserContentTypeSchema, any>,
   res: Response
 ) => {
   const id = req.params.id;
@@ -484,7 +453,7 @@ export const getUserContent = async (
 };
 
 export const getUserGroups = async (
-  req: TypedRequest<typeof paramsIdSchema, typeof getUserGroupSchema, any>,
+  req: TypedRequest<typeof idSchema, typeof getUserGroupSchema, any>,
   res: Response
 ) => {
   const userId = req.params.id;
@@ -552,7 +521,7 @@ export const getUserGroups = async (
 };
 
 export const updateUserProfile = async (
-  req: TypedRequest<typeof paramsIdSchema, any, typeof profileSchema>,
+  req: TypedRequest<typeof idSchema, any, typeof profileSchema>,
   res: Response
 ) => {
   const id = req.params.id;

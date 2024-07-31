@@ -42,15 +42,6 @@ export const onboardingSchema = z.object({
   isOnboardingCompleted: z.boolean(),
 });
 
-export const paramsIdSchema = z.object({
-  id: z
-    .string()
-    .trim()
-    .uuid()
-    .length(36, 'ID must be exactly 36 characters long!'),
-  // .optional(),
-});
-
 export const paramsEmailSchema = z.object({
   email: z.string().trim().email(),
 });
@@ -101,10 +92,6 @@ export const getUserContentSchema = z.object({
   createdAt: z.date().optional(),
   podcastFile: z.string().optional(),
   podcastTitle: z.string().optional(),
-});
-
-export const createLikeSchema = z.object({
-  contentId: z.string(),
 });
 
 export const getUserContentTypeSchema = z.object({

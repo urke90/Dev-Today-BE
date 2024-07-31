@@ -59,6 +59,10 @@ export const likeCommentsSchema = z.object({
   userId: z.string().optional(),
 });
 
+export const contentIdSchema = z.object({
+  contentId: z.string(),
+});
+
 /***************************************************************** CREATE ***********************************************************/
 
 const contentCreateBaseSchema = z.object({
@@ -77,7 +81,7 @@ const contentCreateBaseSchema = z.object({
     .string()
     .trim()
     .min(3, 'Description must be at least 3 characters long!'),
-  coverImage: z.string().trim().url().optional(),
+  coverImage: z.string().trim().url().nullable(),
   tags: z.array(z.string().min(1, 'Tag must be at least 1 character long!')),
   comments: z.array(commentsSchema).optional(),
 });
@@ -149,22 +153,3 @@ export const getAllContentSidebarDetailsSchema = z.object({
     .uuid('ID must be unique and uuid')
     .length(36, 'ID must be exactly 36 characters long!'),
 });
-
-// const contentUpdateBaseSchema = z.object({
-//   title: z
-//     .string()
-//     .trim()
-//     .min(2, 'Title must be at least 2 characters long!')
-//     .optional(),
-//   description: z
-//     .string()
-//     .trim()
-//     .min(3, 'Description must be at least 3 characters long!')
-//     .optional(),
-//   coverImage: z.string().trim().url().optional(),
-//   tags: z
-//     .array(z.string().min(1, 'Tag must be at least 1 character long!'))
-//     .optional(),
-//   comments: z.array(commentsSchema).optional(),
-// });
-// export const updatePostSchema = contentUpdateBaseSchema.extend({});
