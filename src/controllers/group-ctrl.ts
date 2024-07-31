@@ -22,14 +22,6 @@ import type {
 
 // ----------------------------------------------------------------
 
-/**
- * SOLITIONS
- * 1. SQL radio bih 2 inster inot
- * 2. napravitit custom ID i  2 insert-a sa tim ID
- * 3. Napraviti query za create Group pa korisiti dalje created group id za novi crate
- * U OBA SLUCAJA KORISTITI TRANSAKCIJU
- */
-
 export const createGroup = async (
   req: TypedRequestBody<typeof createGroupSchema>,
   res: Response
@@ -52,6 +44,7 @@ export const createGroup = async (
         },
       },
     });
+    `2`;
 
     res.status(201).json({ group: newGroup });
   } catch (error) {
@@ -452,10 +445,10 @@ export const getGroupById = async (
     }
 
     const isGroupOwner = group.authorId === viewerId;
-    const isGroupAdmin = group.members.some(
+    const isGroupAdmin = group.members?.some(
       (member) => member.user.id === viewerId && member.role === Role.ADMIN
     );
-    const isGroupUser = group.members.some(
+    const isGroupUser = group.members?.some(
       (member) => member.user.id === viewerId && member.role === Role.USER
     );
 
@@ -621,13 +614,6 @@ export const joinGroup = async (
 
     res.status(201).json({ message: 'User added to the group.' });
   } catch (error) {
-    // if (error instanceof Prisma.PrismaClientKnownRequestError) {
-    //   if (error.code === 'P2002') {
-    //     return res
-    //       .status(409)
-    //       .json({ message: 'User with provided email already exists!' });
-    //   }
-    // }
     res.status(500).json({ message: 'Internal server error!' });
   }
 };
@@ -716,7 +702,7 @@ export const removeUserFromGroup = async (
 
     if (!group) return res.status(404).json({ message: 'Group not found!' });
 
-    const isAdmin = group.members.some(
+    const isAdmin = group?.members?.some(
       (member) => member.userId === viewerId && member.role === Role.ADMIN
     );
 

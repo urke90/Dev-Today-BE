@@ -1,5 +1,6 @@
 import {
   createComment,
+  createLike,
   createMeetup,
   createPodcast,
   createPost,
@@ -10,6 +11,7 @@ import {
   getContent,
   getContentById,
   getContentStatsSidebar,
+  removeLike,
   updateComment,
   updateMeetup,
   updatePodcast,
@@ -19,6 +21,7 @@ import { idSchema, viewerIdSchema } from '@/lib/zod/common';
 import {
   allContentQuerySchema,
   commentsSchema,
+  contentIdSchema,
   getAllContentSidebarDetailsSchema,
   meetupSchema,
   podcastSchema,
@@ -116,4 +119,18 @@ contentRoutes.get(
   validateRequestParams(idSchema),
   validateReqQuery(viewerIdSchema),
   getAllComments
+);
+
+contentRoutes.post(
+  '/:id/like',
+  validateReqParams(idSchema),
+  validateReqBody(contentIdSchema),
+  createLike
+);
+
+contentRoutes.delete(
+  '/:id/dislike',
+  validateReqParams(idSchema),
+  validateReqBody(contentIdSchema),
+  removeLike
 );
