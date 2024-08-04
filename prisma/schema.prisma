@@ -54,29 +54,37 @@ model Followers {
 }
 
 model Content {
-  id                  String       @id @default(uuid())
-  type                EContentType
-  createdAt           DateTime     @default(now())
-  updatedAt           DateTime?    @updatedAt
-  author              User         @relation(fields: [authorId], references: [id])
-  authorId            String
-  likedBy             User[]       @relation("ContentLikes")
-  likes               Like[]
-  title               String
-  description         String
-  coverImage          String?
-  meetupLocation      String?
-  meetupLocationImage String?
-  meetupDate          DateTime?
-  podcastFile         String?
-  podcastTitle        String?
-  tags                Tag[]
-  comments            Comment[]
-  viewsCount          Int?         @default(0)
-  likesCount          Int?         @default(0)
-  commentsCount       Int?         @default(0)
-  group               Group?       @relation(fields: [groupId], references: [id])
-  groupId             String?
+  id             String          @id @default(uuid())
+  type           EContentType
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime?       @updatedAt
+  author         User            @relation(fields: [authorId], references: [id])
+  authorId       String
+  likedBy        User[]          @relation("ContentLikes")
+  likes          Like[]
+  title          String
+  description    String
+  coverImage     String?
+  meetupLocation MeetupLocation?
+  meetupDate     DateTime?
+  podcastFile    String?
+  podcastTitle   String?
+  tags           Tag[]
+  comments       Comment[]
+  viewsCount     Int?            @default(0)
+  likesCount     Int?            @default(0)
+  commentsCount  Int?            @default(0)
+  group          Group?          @relation(fields: [groupId], references: [id])
+  groupId        String?
+}
+
+model MeetupLocation {
+  id        String   @id @default(uuid())
+  address   String
+  lat       Float
+  lng       Float
+  content   Content? @relation(fields: [contentId], references: [id])
+  contentId String?  @unique
 }
 
 model Like {

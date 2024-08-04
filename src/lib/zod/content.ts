@@ -92,11 +92,14 @@ export const postSchema = contentCreateBaseSchema.extend({
 
 export const meetupSchema = contentCreateBaseSchema.extend({
   type: z.literal(EContentType.MEETUP),
-  meetupLocation: z
-    .string()
-    .trim()
-    .min(3, 'Location must be at least 3 characters long!'),
-  meetupLocationImage: z.string().trim().url().optional(),
+  meetupLocation: z.object({
+    address: z
+      .string()
+      .trim()
+      .min(1, 'Address must be at least 1 character long'),
+    lat: z.number(),
+    lng: z.number(),
+  }),
   meetupDate: z.coerce.date({
     required_error: 'Date is required!',
     invalid_type_error: 'Invalid date format!',
@@ -123,11 +126,15 @@ export const contentUpdateBaseSchema = contentCreateBaseSchema.omit({
 export const updatePostSchema = contentUpdateBaseSchema.extend({});
 
 export const updateMeetupSchema = contentUpdateBaseSchema.extend({
-  meetupLocation: z
-    .string()
-    .trim()
-    .min(3, 'Location must be at least 3 characters long!'),
-  meetupLocationImage: z.string().trim().url(),
+  meetupLocation: z.object({
+    address: z
+      .string()
+      .trim()
+      .min(1, 'Address must be at least 1 character long'),
+    lat: z.number(),
+    lng: z.number(),
+  }),
+
   meetupDate: z.coerce.date({
     required_error: 'Date is required!',
     invalid_type_error: 'Invalid date format!',

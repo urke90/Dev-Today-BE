@@ -71,7 +71,28 @@ export const getContent = async (
       };
     }
 
-    const fetchedContent = await prisma.content.findMany({
+    if (type === EContentType.MEETUP) {
+      include = {
+        meetupLocation: true,
+      };
+    }
+
+    type ContentWithPaylod = Prisma.ContentGetPayload<{
+      include: {
+        tags: true;
+        meetupLocation: true;
+        author: {
+          select: {
+            avatarImg: true;
+            userName: true;
+          };
+        };
+      };
+      skip: number;
+      take: number;
+    }>;
+
+    const fetchedContent = (await prisma.content.findMany({
       where,
       orderBy,
       include: {
@@ -86,7 +107,7 @@ export const getContent = async (
       },
       skip: (page - 1) * itemsPerPage,
       take: itemsPerPage,
-    });
+    })) as ContentWithPaylod[];
 
     const contents = fetchedContent.map((content) => {
       if (content.type === EContentType.POST) {
@@ -134,7 +155,7 @@ export const getContent = async (
 
     res.status(200).json({ contents, totalPages, hasNextPage });
   } catch (error) {
-    console.log('Error fetching content');
+    console.log('Error fetching content', error);
     res.status(500).json({ message: 'Internal server error!' });
   }
 };
@@ -152,6 +173,7 @@ export const getContentById = async (
       },
       include: {
         tags: true,
+        meetupLocation: true,
         group: {
           select: {
             coverImage: true,
@@ -258,7 +280,6 @@ export const createMeetup = async (
     authorId,
     meetupDate,
     meetupLocation,
-    meetupLocationImage,
   } = req.body;
 
   try {
@@ -281,8 +302,9 @@ export const createMeetup = async (
           })),
         },
         meetupDate,
-        meetupLocationImage,
-        meetupLocation,
+        meetupLocation: {
+          create: meetupLocation,
+        },
       },
     });
 
@@ -431,15 +453,8 @@ export const updateMeetup = async (
   const meetupId = req.params.id;
   const viewerId = req.query.viewerId;
 
-  const {
-    description,
-    title,
-    coverImage,
-    tags,
-    meetupDate,
-    meetupLocation,
-    meetupLocationImage,
-  } = req.body;
+  const { description, title, coverImage, tags, meetupDate, meetupLocation } =
+    req.body;
 
   try {
     const existingMeetup = await prisma.content.findUnique({
@@ -480,9 +495,17 @@ export const updateMeetup = async (
             },
           })),
         },
+        meetupLocation: {
+          update: {
+            where: {
+              id: meetupId,
+            },
+            data: {
+              ...meetupLocation,
+            },
+          },
+        },
         meetupDate,
-        meetupLocationImage,
-        meetupLocation,
       },
     });
 
