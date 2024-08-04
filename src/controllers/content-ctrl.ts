@@ -496,11 +496,14 @@ export const updateMeetup = async (
           })),
         },
         meetupLocation: {
-          update: {
-            where: {
-              id: meetupId,
+          upsert: {
+            create: {
+              // address: meetupLocation.address,
+              // lat: meetupLocation.lat,
+              // lng: meetupLocation.lng
+              ...meetupLocation,
             },
-            data: {
+            update: {
               ...meetupLocation,
             },
           },
