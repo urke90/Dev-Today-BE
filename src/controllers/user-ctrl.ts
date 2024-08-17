@@ -175,26 +175,6 @@ export const loginUser = async (
   }
 };
 
-export const deleteUser = async (
-  req: TypedRequestParams<typeof idSchema>,
-  res: Response
-) => {
-  const id = req.params.id;
-
-  try {
-    await prisma.user.delete({
-      where: { id },
-    });
-
-    res.status(200).json({ message: 'User deleted!' });
-  } catch (error) {
-    console.log('Error deleting user!', error);
-    res.status(500).json({
-      message: 'Oops! An internal server error occurred on our end.',
-    });
-  }
-};
-
 export const loginUserWithProvider = async (
   req: TypedRequestBody<typeof loginProviderSchema>,
   res: Response
@@ -220,6 +200,26 @@ export const loginUserWithProvider = async (
     res.status(200).json({ user: newUser });
   } catch (error) {
     console.log('Error logging in user', error);
+    res.status(500).json({
+      message: 'Oops! An internal server error occurred on our end.',
+    });
+  }
+};
+
+export const deleteUser = async (
+  req: TypedRequestParams<typeof idSchema>,
+  res: Response
+) => {
+  const id = req.params.id;
+
+  try {
+    await prisma.user.delete({
+      where: { id },
+    });
+
+    res.status(200).json({ message: 'User deleted!' });
+  } catch (error) {
+    console.log('Error deleting user!', error);
     res.status(500).json({
       message: 'Oops! An internal server error occurred on our end.',
     });
