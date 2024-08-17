@@ -44,7 +44,6 @@ export const createGroup = async (
         },
       },
     });
-    `2`;
 
     res.status(201).json({ group: newGroup });
   } catch (error) {

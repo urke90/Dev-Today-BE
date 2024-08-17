@@ -12,11 +12,6 @@ import {
   registerSchema,
   userIdSchema,
 } from '@/lib/zod/user';
-import {
-  IGroupContent,
-  IGroupMember,
-  IGroupWithMembersAndCount,
-} from '@/types/group';
 import { excludeField, excludeProperty } from '@/utils/prisma-functions';
 import { EContentType } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
@@ -175,26 +170,6 @@ export const loginUser = async (
   }
 };
 
-export const deleteUser = async (
-  req: TypedRequestParams<typeof idSchema>,
-  res: Response
-) => {
-  const id = req.params.id;
-
-  try {
-    await prisma.user.delete({
-      where: { id },
-    });
-
-    res.status(200).json({ message: 'User deleted!' });
-  } catch (error) {
-    console.log('Error deleting user!', error);
-    res.status(500).json({
-      message: 'Oops! An internal server error occurred on our end.',
-    });
-  }
-};
-
 export const loginUserWithProvider = async (
   req: TypedRequestBody<typeof loginProviderSchema>,
   res: Response
@@ -226,8 +201,27 @@ export const loginUserWithProvider = async (
   }
 };
 
+export const deleteUser = async (
+  req: TypedRequestParams<typeof idSchema>,
+  res: Response
+) => {
+  const id = req.params.id;
+
+  try {
+    await prisma.user.delete({
+      where: { id },
+    });
+
+    res.status(200).json({ message: 'User deleted!' });
+  } catch (error) {
+    console.log('Error deleting user!', error);
+    res.status(500).json({
+      message: 'Oops! An internal server error occurred on our end.',
+    });
+  }
+};
+
 export const updateUserOnboarding = async (
-  // TODO: have to fix "any" since
   req: TypedRequest<typeof idSchema, any, typeof onboardingSchema>,
   res: Response
 ) => {
@@ -452,6 +446,33 @@ export const getUserContent = async (
   }
 };
 
+type IGroupUserWithPaylod = Prisma.GroupUserGetPayload<{
+  include: {
+    group: {
+      include: {
+        _count: {
+          select: {
+            members: true;
+          };
+        };
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true;
+                avatarImg: true;
+              };
+            };
+          };
+          take: 4;
+        };
+      };
+    };
+  };
+  skip: number;
+  take: number;
+}>;
+
 export const getUserGroups = async (
   req: TypedRequest<typeof idSchema, typeof getUserGroupSchema, any>,
   res: Response
@@ -461,8 +482,7 @@ export const getUserGroups = async (
   const itemsPerPage = 6;
 
   try {
-    // TODO fix types in the controller, remove ANY
-    let groupContent: any = await prisma.groupUser.findMany({
+    let groupContent = (await prisma.groupUser.findMany({
       where: {
         userId,
       },
@@ -490,18 +510,14 @@ export const getUserGroups = async (
       },
       skip: (page - 1) * itemsPerPage,
       take: itemsPerPage,
-    });
+    })) as IGroupUserWithPaylod[];
 
-    // TODO fix interfaces/types naming
-    if (groupContent) {
-      groupContent = groupContent.map(
-        (groupMember: IGroupContent) => groupMember.group
-      );
-      groupContent = groupContent.map((group: IGroupWithMembersAndCount) => ({
+    const userGroups = groupContent
+      .map((groupContent) => groupContent.group)
+      .map((group) => ({
         ...group,
-        members: group.members.map((member: IGroupMember) => member.user),
+        members: group.members.map((member) => member.user),
       }));
-    }
 
     const groupCount = await prisma.groupUser.count({
       where: {
@@ -511,7 +527,7 @@ export const getUserGroups = async (
     const totalPages = Math.ceil(groupCount / itemsPerPage);
     const hasNextPage = page < totalPages;
 
-    res.status(200).json({ groups: groupContent, totalPages, hasNextPage });
+    res.status(200).json({ groups: userGroups, totalPages, hasNextPage });
   } catch (error) {
     console.log('Error fetching user group content', error);
     res

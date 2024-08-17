@@ -91,11 +91,6 @@ userRoutes.post('/register', validateReqBody(registerSchema), registerUser);
 
 userRoutes.post('/login', validateReqBody(loginSchema), loginUser);
 
-userRoutes.post('/login-provider', validateReqBody(loginProviderSchema));
-userRoutes.post('/register', validateReqBody(registerSchema), registerUser);
-
-userRoutes.post('/login', validateReqBody(loginSchema), loginUser);
-
 userRoutes.post(
   '/login-provider',
   validateReqBody(loginProviderSchema),
