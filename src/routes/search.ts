@@ -1,7 +1,8 @@
+import express from 'express';
+
 import { searchGroupsAndContents } from '@/controllers/search-ctrl';
 import { searchQuerySchema } from '@/lib/zod/common';
 import { validateReqQuery } from '@/utils/middlewares';
-import express from 'express';
 
 // ----------------------------------------------------------------
 

@@ -1,3 +1,14 @@
+import { EContentType } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { compare, genSalt, hash } from 'bcrypt';
+import type { Response } from 'express';
+import {
+  TypedRequest,
+  type TypedRequestBody,
+  type TypedRequestParams,
+  TypedRequestQuery,
+} from 'zod-express-middleware';
+
 import { Prisma, prisma } from '@/database/prisma-client';
 import { idSchema } from '@/lib/zod/common';
 import {
@@ -13,16 +24,6 @@ import {
   userIdSchema,
 } from '@/lib/zod/user';
 import { excludeField, excludeProperty } from '@/utils/prisma-functions';
-import { EContentType } from '@prisma/client';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { compare, genSalt, hash } from 'bcrypt';
-import type { Response } from 'express';
-import {
-  TypedRequest,
-  TypedRequestQuery,
-  type TypedRequestBody,
-  type TypedRequestParams,
-} from 'zod-express-middleware';
 
 // ----------------------------------------------------------------
 
@@ -56,7 +57,7 @@ export const getAllUsers = async (
   const limit = req.query.limit ? Number(req.query.limit) : 4;
   const q = req.query.q || '';
 
-  let where: { [key: string]: any } = {};
+  let where: { [key: string]: unknown } = {};
 
   if (q.trim() !== '') {
     where = {
@@ -147,17 +148,19 @@ export const loginUser = async (
       where: { email },
     });
 
-    if (!existingUser)
+    if (!existingUser) {
       return res
         .status(404)
         .json({ message: 'User with provided email not found!' });
+    }
 
     if (!existingUser.password) throw new Error('User has no password!');
 
-    if (!(await compare(password, existingUser.password)))
+    if (!(await compare(password, existingUser.password))) {
       return res
         .status(400)
         .json({ message: 'You have entered wrong password!' });
+    }
 
     const user = excludeProperty(existingUser, ['password']);
 
@@ -222,7 +225,7 @@ export const deleteUser = async (
 };
 
 export const updateUserOnboarding = async (
-  req: TypedRequest<typeof idSchema, any, typeof onboardingSchema>,
+  req: TypedRequest<typeof idSchema, never, typeof onboardingSchema>,
   res: Response
 ) => {
   const id = req.params.id;
@@ -263,7 +266,7 @@ export const updateUserOnboarding = async (
 };
 
 export const followUser = async (
-  req: TypedRequest<typeof idSchema, any, typeof userIdSchema>,
+  req: TypedRequest<typeof idSchema, never, typeof userIdSchema>,
   res: Response
 ) => {
   // id is the person we want to follow
@@ -278,8 +281,9 @@ export const followUser = async (
       },
     });
 
-    if (existingFollow)
+    if (existingFollow) {
       return res.status(409).json({ message: 'User is already followed.' });
+    }
 
     await prisma.followers.create({
       data: {
@@ -298,7 +302,7 @@ export const followUser = async (
 };
 
 export const unfollowUser = async (
-  req: TypedRequest<typeof idSchema, any, typeof userIdSchema>,
+  req: TypedRequest<typeof idSchema, never, typeof userIdSchema>,
   res: Response
 ) => {
   // id is the person we want to follow
@@ -312,8 +316,9 @@ export const unfollowUser = async (
         followerId_followingId: { followerId: userId, followingId: id },
       },
     });
-    if (!existingFollow)
+    if (!existingFollow) {
       return res.status(404).json({ message: 'User is not followed.' });
+    }
 
     await prisma.followers.delete({
       where: {
@@ -330,7 +335,7 @@ export const unfollowUser = async (
 };
 
 export const getUserById = async (
-  req: TypedRequest<typeof idSchema, typeof profileSchema, any>,
+  req: TypedRequest<typeof idSchema, typeof profileSchema, never>,
   res: Response
 ) => {
   // User profile viewed
@@ -394,7 +399,7 @@ export const getUserById = async (
 };
 
 export const getUserContent = async (
-  req: TypedRequest<typeof idSchema, typeof getUserContentTypeSchema, any>,
+  req: TypedRequest<typeof idSchema, typeof getUserContentTypeSchema, never>,
   res: Response
 ) => {
   const id = req.params.id;
@@ -474,7 +479,7 @@ type IGroupUserWithPaylod = Prisma.GroupUserGetPayload<{
 }>;
 
 export const getUserGroups = async (
-  req: TypedRequest<typeof idSchema, typeof getUserGroupSchema, any>,
+  req: TypedRequest<typeof idSchema, typeof getUserGroupSchema, never>,
   res: Response
 ) => {
   const userId = req.params.id;
@@ -482,7 +487,7 @@ export const getUserGroups = async (
   const itemsPerPage = 6;
 
   try {
-    let groupContent = (await prisma.groupUser.findMany({
+    const groupContent = (await prisma.groupUser.findMany({
       where: {
         userId,
       },
@@ -537,7 +542,7 @@ export const getUserGroups = async (
 };
 
 export const updateUserProfile = async (
-  req: TypedRequest<typeof idSchema, any, typeof profileSchema>,
+  req: TypedRequest<typeof idSchema, never, typeof profileSchema>,
   res: Response
 ) => {
   const id = req.params.id;
@@ -558,16 +563,16 @@ export const updateUserProfile = async (
     await prisma.user.update({
       where: { id },
       data: {
-        avatarImg: avatarImg,
-        userName: userName,
-        bio: bio,
-        preferredSkills: preferredSkills,
-        linkedinName: linkedinName,
-        linkedinLink: linkedinLink,
-        twitterName: twitterName,
-        twitterLink: twitterLink,
-        instagramName: instagramName,
-        instagramLink: instagramLink,
+        avatarImg,
+        userName,
+        bio,
+        preferredSkills,
+        linkedinName,
+        linkedinLink,
+        twitterName,
+        twitterLink,
+        instagramName,
+        instagramLink,
       },
     });
     res.status(200).json({ message: 'User profile updated!' });

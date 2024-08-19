@@ -1,3 +1,13 @@
+import { EContentType } from '@prisma/client';
+import type { Response } from 'express';
+import type {
+  TypedRequest,
+  TypedRequestBody,
+  TypedRequestParams,
+  TypedRequestQuery,
+} from 'zod-express-middleware';
+
+import { prisma, Prisma } from '@/database/prisma-client';
 import { idSchema, viewerIdSchema } from '@/lib/zod/common';
 import {
   allContentQuerySchema,
@@ -12,16 +22,6 @@ import {
   updateMeetupSchema,
   updatePostSchema,
 } from '@/lib/zod/content';
-import type { Response } from 'express';
-import type {
-  TypedRequest,
-  TypedRequestBody,
-  TypedRequestParams,
-  TypedRequestQuery,
-} from 'zod-express-middleware';
-
-import { prisma, Prisma } from '@/database/prisma-client';
-import { EContentType } from '@prisma/client';
 
 // ----------------------------------------------------------------
 
@@ -35,9 +35,9 @@ export const getContent = async (
   const viewerId = req.query.viewerId;
   const sortBy = req.query.sortBy;
 
-  let include: { [key: string]: any } = {};
-  let orderBy: { [key: string]: any } = {};
-  let where: { [key: string]: any } = {};
+  let include: { [key: string]: unknown } = {};
+  let orderBy: { [key: string]: unknown } = {};
+  let where: { [key: string]: unknown } = {};
 
   try {
     if (sortBy === 'recent') {
@@ -199,7 +199,7 @@ export const getAllTags = async (
   const title = req.query.title;
   const limit = req.query.limit ? Number(req.query.limit) : 4;
 
-  let where: { [ket: string]: any } = {};
+  let where: { [ket: string]: unknown } = {};
 
   if (title?.trim() !== '') {
     where = {
@@ -223,7 +223,7 @@ export const getAllTags = async (
   }
 };
 
-/***************************************************************** CREATE ********************************************************** */
+/** *************************************************************** CREATE ********************************************************** */
 
 export const createPost = async (
   req: TypedRequestBody<typeof postSchema>,
@@ -372,9 +372,9 @@ export const createPodcast = async (
   }
 };
 
-/***************************************************************** CREATE ***********************************************************/
+/** *************************************************************** CREATE ***********************************************************/
 
-/***************************************************************** UPDATE ***********************************************************/
+/** *************************************************************** UPDATE ***********************************************************/
 
 export const updatePost = async (
   req: TypedRequest<
@@ -398,11 +398,13 @@ export const updatePost = async (
       },
     });
 
-    if (!existingPost)
+    if (!existingPost) {
       return res.status(404).json({ message: 'Post not found!' });
+    }
 
-    if (existingPost.authorId !== viewerId)
+    if (existingPost.authorId !== viewerId) {
       return res.status(401).json({ message: 'Unauthorized' });
+    }
 
     const tagsToRemove = existingPost.tags.filter(
       (t) => !tags.includes(t.title)
@@ -466,11 +468,13 @@ export const updateMeetup = async (
       },
     });
 
-    if (!existingMeetup)
+    if (!existingMeetup) {
       return res.status(404).json({ message: 'Post not found!' });
+    }
 
-    if (existingMeetup.authorId !== viewerId)
+    if (existingMeetup.authorId !== viewerId) {
       return res.status(401).json({ message: 'Unauthorized' });
+    }
 
     const tagsToRemove = existingMeetup.tags.filter(
       (t) => !tags.includes(t.title)
@@ -498,9 +502,6 @@ export const updateMeetup = async (
         meetupLocation: {
           upsert: {
             create: {
-              // address: meetupLocation.address,
-              // lat: meetupLocation.lat,
-              // lng: meetupLocation.lng
               ...meetupLocation,
             },
             update: {
@@ -547,11 +548,13 @@ export const updatePodcast = async (
       },
     });
 
-    if (!existingPodcast)
+    if (!existingPodcast) {
       return res.status(404).json({ message: 'Post not found!' });
+    }
 
-    if (existingPodcast.authorId !== viewerId)
+    if (existingPodcast.authorId !== viewerId) {
       return res.status(401).json({ message: 'Unauthorized' });
+    }
 
     const tagsToRemove = existingPodcast.tags.filter(
       (t) => !tags.includes(t.title)
@@ -593,10 +596,10 @@ export const updatePodcast = async (
   }
 };
 
-/***************************************************************** COMMENTS ***********************************************************/
+/** *************************************************************** COMMENTS ***********************************************************/
 
 export const getAllComments = async (
-  req: TypedRequest<typeof idSchema, typeof viewerIdSchema, any>,
+  req: TypedRequest<typeof idSchema, typeof viewerIdSchema, never>,
   res: Response
 ) => {
   const contentId = req.params.id;
@@ -737,7 +740,7 @@ export const updateComment = async (
     } else {
       await prisma.comment.update({
         where: {
-          id: id,
+          id,
         },
         data: {
           text,
@@ -822,7 +825,7 @@ export const getContentStatsSidebar = async (
   req: TypedRequestQuery<typeof getAllContentSidebarDetailsSchema>,
   res: Response
 ) => {
-  let { posts, meetups, podcasts, viewerId } = req.query;
+  const { posts, meetups, podcasts, viewerId } = req.query;
   let postsData, meetupsData, podcastsData;
 
   try {
@@ -967,10 +970,10 @@ export const getContentStatsSidebar = async (
   }
 };
 
-/***************************************************************** UPDATE ***********************************************************/
+/** *************************************************************** UPDATE ***********************************************************/
 
 export const createLike = async (
-  req: TypedRequest<typeof idSchema, any, typeof contentIdSchema>,
+  req: TypedRequest<typeof idSchema, never, typeof contentIdSchema>,
   res: Response
 ) => {
   const id = req.params.id;
@@ -979,8 +982,9 @@ export const createLike = async (
     const existingLike = await prisma.like.findUnique({
       where: { userId_contentId: { userId: id, contentId } },
     });
-    if (existingLike)
+    if (existingLike) {
       return res.status(409).json({ message: 'Existing like.' });
+    }
 
     await prisma.$transaction([
       prisma.like.create({
@@ -1007,7 +1011,7 @@ export const createLike = async (
 };
 
 export const removeLike = async (
-  req: TypedRequest<typeof idSchema, any, typeof contentIdSchema>,
+  req: TypedRequest<typeof idSchema, never, typeof contentIdSchema>,
   res: Response
 ) => {
   const id = req.params.id;
@@ -1017,8 +1021,9 @@ export const removeLike = async (
     const existingLike = await prisma.like.findUnique({
       where: { userId_contentId: { userId: id, contentId } },
     });
-    if (!existingLike)
+    if (!existingLike) {
       return res.status(404).json({ message: 'Liked content is not found.' });
+    }
 
     await prisma.$transaction([
       prisma.like.delete({
