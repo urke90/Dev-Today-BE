@@ -1,6 +1,11 @@
 {
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended"
+  ],
   "parser": "@typescript-eslint/parser",
-  "extends": ["plugin:@typescript-eslint/recommended", "prettier", "standard"],
+  "plugins": ["@typescript-eslint"],
   "parserOptions": {
     "ecmaVersion": 2018,
     "sourceType": "module"
@@ -9,7 +14,7 @@
     "semi": ["error", "always"],
     "quotes": ["error", "single"],
     "@typescript-eslint/explicit-function-return-type": "off",
-    "@typescript-eslint/no-explicit-any": 1,
+    "@typescript-eslint/no-explicit-any": 0,
     "@typescript-eslint/no-inferrable-types": [
       "warn",
       {
@@ -24,18 +29,13 @@
         "ignoreDeclarationSort": true
       }
     ],
-    "import/order": [
-      1,
+    "prettier/prettier": [
+      "error",
       {
-        "newlines-between": "always",
-        "groups": [
-          ["builtin"],
-          "sibling",
-          "parent",
-          "external",
-          "internal",
-          "index"
-        ]
+        "singleQuote": true,
+        "parser": "typescript",
+        "avoidEscape": true,
+        "trailingComma": "es5"
       }
     ]
   }

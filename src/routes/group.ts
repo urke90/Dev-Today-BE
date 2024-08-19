@@ -1,3 +1,5 @@
+import express from 'express';
+
 import {
   assignAdminRole,
   createGroup,
@@ -30,7 +32,6 @@ import {
   validateReqParams,
   validateReqQuery,
 } from '@/utils/middlewares';
-import express from 'express';
 
 // ----------------------------------------------------------------
 

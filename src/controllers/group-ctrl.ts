@@ -1,6 +1,13 @@
+import { EContentType, Role } from '@prisma/client';
+import type { Response } from 'express';
+import type {
+  TypedRequest,
+  TypedRequestBody,
+  TypedRequestQuery,
+} from 'zod-express-middleware';
+
 import { Prisma, prisma } from '@/database/prisma-client';
 import { idSchema, viewerIdSchema } from '@/lib/zod/common';
-
 import {
   createGroupSchema,
   getAllGroupsSchema,
@@ -12,13 +19,6 @@ import {
   joinOrLeaveGroupSchema,
   updateGroupSchema,
 } from '@/lib/zod/group';
-import { EContentType, Role } from '@prisma/client';
-import type { Response } from 'express';
-import type {
-  TypedRequest,
-  TypedRequestBody,
-  TypedRequestQuery,
-} from 'zod-express-middleware';
 
 // ----------------------------------------------------------------
 
@@ -58,7 +58,7 @@ export const createGroup = async (
 };
 
 export const updateGroup = async (
-  req: TypedRequest<typeof idSchema, any, typeof updateGroupSchema>,
+  req: TypedRequest<typeof idSchema, never, typeof updateGroupSchema>,
   res: Response
 ) => {
   const id = req.params.id;
@@ -100,13 +100,19 @@ export const getAllGroups = async (
   const sortBy = req.query.sortBy;
   const viewerId = req.query.viewerId;
 
-  let where: { [key: string]: any } = {};
-  let include: { [key: string]: any } = {};
-  let orderBy: { [key: string]: any } = {};
+  let where: { [key: string]: unknown } = {};
+  let include: { [key: string]: unknown } = {};
+  let orderBy: { [key: string]: unknown } = {};
 
   try {
     if (q) {
-      where = { ...where, name: { contains: q, mode: 'insensitive' } };
+      where = {
+        ...where,
+        name: {
+          contains: q,
+          mode: 'insensitive',
+        },
+      };
     }
 
     if (members === 'true') {
@@ -330,7 +336,7 @@ type IGetGroupById = Prisma.GroupGetPayload<{
 }>;
 
 export const getGroupById = async (
-  req: TypedRequest<typeof idSchema, typeof getGroupByIdSchema, any>,
+  req: TypedRequest<typeof idSchema, typeof getGroupByIdSchema, never>,
   res: Response
 ) => {
   const id = req.params.id;
@@ -340,7 +346,7 @@ export const getGroupById = async (
   const topRankedGroups = req.query.topRankedGroups;
   const viewerId = req.query.viewerId;
 
-  let include: { [key: string]: any } = {};
+  let include: { [key: string]: unknown } = {};
   let fetchedTopRankedGroups;
 
   try {
@@ -482,7 +488,7 @@ export const getGroupById = async (
 // }>;
 
 export const getGroupContent = async (
-  req: TypedRequest<typeof idSchema, typeof getGroupContentSchema, any>,
+  req: TypedRequest<typeof idSchema, typeof getGroupContentSchema, never>,
   res: Response
 ) => {
   const groupId = req.params.id;
@@ -540,7 +546,7 @@ export const getGroupContent = async (
 };
 
 export const getGroupMembers = async (
-  req: TypedRequest<typeof idSchema, typeof getGroupMembersSchema, any>,
+  req: TypedRequest<typeof idSchema, typeof getGroupMembersSchema, never>,
   res: Response
 ) => {
   const groupId = req.params.id;
@@ -548,7 +554,7 @@ export const getGroupMembers = async (
   const role = req.query.role;
   const itemsPerPage = req.query.limit ? Number(req.query.limit) : 15;
 
-  let where: { [key: string]: any } = {};
+  let where: { [key: string]: unknown } = {};
 
   try {
     if (role) {
@@ -597,7 +603,7 @@ export const getGroupMembers = async (
 };
 
 export const joinGroup = async (
-  req: TypedRequest<typeof idSchema, any, typeof joinOrLeaveGroupSchema>,
+  req: TypedRequest<typeof idSchema, never, typeof joinOrLeaveGroupSchema>,
   res: Response
 ) => {
   const groupId = req.params.id;
@@ -618,7 +624,7 @@ export const joinGroup = async (
 };
 
 export const leaveGroup = async (
-  req: TypedRequest<typeof idSchema, any, typeof joinOrLeaveGroupSchema>,
+  req: TypedRequest<typeof idSchema, never, typeof joinOrLeaveGroupSchema>,
   res: Response
 ) => {
   const groupId = req.params.id;
@@ -631,8 +637,9 @@ export const leaveGroup = async (
       },
     });
 
-    if (!existingMember)
+    if (!existingMember) {
       return res.status(404).json({ message: 'User not founded!' });
+    }
 
     await prisma.groupUser.delete({
       where: {
@@ -647,7 +654,7 @@ export const leaveGroup = async (
 };
 
 export const deleteGroup = async (
-  req: TypedRequest<typeof idSchema, any, typeof viewerIdSchema>,
+  req: TypedRequest<typeof idSchema, never, typeof viewerIdSchema>,
   res: Response
 ) => {
   const groupId = req.params.id;
@@ -665,10 +672,11 @@ export const deleteGroup = async (
 
     if (!group) return res.status(404).json({ message: 'Group not found' });
 
-    if (group.authorId !== viewerId)
+    if (group.authorId !== viewerId) {
       return res
         .status(401)
         .json({ message: 'No permission to delete group!' });
+    }
 
     await prisma.group.delete({
       where: {
@@ -683,7 +691,7 @@ export const deleteGroup = async (
 };
 
 export const removeUserFromGroup = async (
-  req: TypedRequest<typeof idSchema, any, typeof groupMemebersActionsSchema>,
+  req: TypedRequest<typeof idSchema, never, typeof groupMemebersActionsSchema>,
   res: Response
 ) => {
   try {
@@ -705,10 +713,11 @@ export const removeUserFromGroup = async (
       (member) => member.userId === viewerId && member.role === Role.ADMIN
     );
 
-    if (!isAdmin)
+    if (!isAdmin) {
       return res.status(403).json({
         message: 'You do not have permission to remove users from the group.',
       });
+    }
 
     await prisma.groupUser.delete({
       where: {
@@ -727,7 +736,7 @@ export const removeUserFromGroup = async (
   }
 };
 export const assignAdminRole = async (
-  req: TypedRequest<typeof idSchema, any, typeof groupMemebersActionsSchema>,
+  req: TypedRequest<typeof idSchema, never, typeof groupMemebersActionsSchema>,
   res: Response
 ) => {
   try {
@@ -749,10 +758,11 @@ export const assignAdminRole = async (
       (member) => member.userId === viewerId && member.role === Role.ADMIN
     );
 
-    if (!isAdmin)
+    if (!isAdmin) {
       return res.status(403).json({
         message: 'You do not have permission to remove users from the group.',
       });
+    }
 
     await prisma.groupUser.update({
       where: {
@@ -773,7 +783,7 @@ export const assignAdminRole = async (
 };
 
 export const removeAdminRole = async (
-  req: TypedRequest<typeof idSchema, any, typeof groupMemebersActionsSchema>,
+  req: TypedRequest<typeof idSchema, never, typeof groupMemebersActionsSchema>,
   res: Response
 ) => {
   try {
@@ -795,10 +805,11 @@ export const removeAdminRole = async (
       (member) => member.userId === viewerId && member.role === Role.ADMIN
     );
 
-    if (!isAdmin)
+    if (!isAdmin) {
       return res.status(403).json({
         message: 'You do not have permission to remove users from the group.',
       });
+    }
 
     await prisma.groupUser.update({
       where: {

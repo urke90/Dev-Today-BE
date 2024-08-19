@@ -1,3 +1,9 @@
+import express from 'express';
+import {
+  validateRequestBody,
+  validateRequestParams,
+} from 'zod-express-middleware';
+
 import {
   createComment,
   createLike,
@@ -35,11 +41,6 @@ import {
   validateReqParams,
   validateReqQuery,
 } from '@/utils/middlewares';
-import express from 'express';
-import {
-  validateRequestBody,
-  validateRequestParams,
-} from 'zod-express-middleware';
 
 // ----------------------------------------------------------------
 
@@ -57,7 +58,7 @@ contentRoutes.get(
 
 contentRoutes.get('/:id', validateReqParams(idSchema), getContentById);
 
-/***************************************************************** CREATE ********************************************************** */
+/** *************************************************************** CREATE ********************************************************** */
 
 contentRoutes.post('/post', validateReqBody(postSchema), createPost);
 
@@ -65,9 +66,9 @@ contentRoutes.post('/meetup', validateReqBody(meetupSchema), createMeetup);
 
 contentRoutes.post('/podcast', validateReqBody(podcastSchema), createPodcast);
 
-/***************************************************************** CREATE ********************************************************** */
+/** *************************************************************** CREATE ********************************************************** */
 
-/***************************************************************** UPDATE ********************************************************** */
+/** *************************************************************** UPDATE ********************************************************** */
 
 contentRoutes.patch(
   '/post/:id',
@@ -93,7 +94,7 @@ contentRoutes.patch(
   updatePodcast
 );
 
-/***************************************************************** COMMENTS ********************************************************** */
+/** *************************************************************** COMMENTS ********************************************************** */
 
 contentRoutes.post('/comment', validateReqBody(commentsSchema), createComment);
 

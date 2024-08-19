@@ -1,7 +1,8 @@
-import { prisma } from '@/database/prisma-client';
-import { searchQuerySchema } from '@/lib/zod/common';
 import type { Response } from 'express';
 import { TypedRequestQuery } from 'zod-express-middleware';
+
+import { prisma } from '@/database/prisma-client';
+import { searchQuerySchema } from '@/lib/zod/common';
 
 // ----------------------------------------------------------------
 
