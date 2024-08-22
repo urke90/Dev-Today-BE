@@ -17,7 +17,8 @@ export const allContentQuerySchema = z.object({
     .trim()
     .uuid('ID must be unique and uuid')
     .length(36, 'ID must be exactly 36 characters long!'),
-  sortBy: z.enum(['recent', 'popular', 'following']).optional(),
+  sortBy: z.enum(['recent', 'popular', 'following', '']).optional(),
+  tag: z.string().trim().optional(),
 });
 
 export const tagsTitleSchema = z.object({

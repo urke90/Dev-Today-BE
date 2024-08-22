@@ -18,7 +18,7 @@ export const getAllGroupsSchema = z.object({
   q: z.string().trim().optional(),
   members: z.literal('true').optional(),
   limit: z.string().trim().optional(),
-  sortBy: z.enum(['recent', 'popular', 'joined']).optional(),
+  sortBy: z.enum(['recent', 'popular', 'joined', '']).optional(),
   viewerId: z
     .string()
     .trim()
