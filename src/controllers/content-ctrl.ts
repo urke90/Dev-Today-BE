@@ -34,6 +34,7 @@ export const getContent = async (
   const itemsPerPage = req.query.limit ? Number(req.query.limit) : 4;
   const viewerId = req.query.viewerId;
   const sortBy = req.query.sortBy;
+  const tag = req.query.tag;
 
   let include: { [key: string]: unknown } = {};
   let orderBy: { [key: string]: unknown } = {};
@@ -74,6 +75,20 @@ export const getContent = async (
     if (type === EContentType.MEETUP) {
       include = {
         meetupLocation: true,
+      };
+    }
+
+    if (tag !== '') {
+      where = {
+        ...where,
+        tags: {
+          some: {
+            title: {
+              equals: tag,
+              mode: 'insensitive',
+            },
+          },
+        },
       };
     }
 
