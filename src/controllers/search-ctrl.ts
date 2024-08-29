@@ -33,5 +33,6 @@ export const searchGroupsAndContents = async (
     res.status(200).json(groupsAndContents);
   } catch (error) {
     console.log('Error fetching groups and contens', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };

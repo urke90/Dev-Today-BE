@@ -46,13 +46,13 @@ export const commentsSchema = z.object({
   authorId: z
     .string()
     .trim()
-    .uuid('ID must be unique and uuid')
-    .length(36, 'ID must be exactly 36 characters long!'),
+    .uuid('Author ID must be unique and uuid')
+    .length(36, 'Author ID must be exactly 36 characters long!'),
   contentId: z
     .string()
     .trim()
-    .uuid('ID must be unique and uuid')
-    .length(36, 'ID must be exactly 36 characters long!'),
+    .uuid('Content ID must be unique and uuid')
+    .length(36, 'Content ID must be exactly 36 characters long!'),
 });
 
 export const likeCommentsSchema = z.object({
@@ -84,7 +84,6 @@ const contentCreateBaseSchema = z.object({
     .min(3, 'Description must be at least 3 characters long!'),
   coverImage: z.string().trim().url().nullable(),
   tags: z.array(z.string().min(1, 'Tag must be at least 1 character long!')),
-  comments: z.array(commentsSchema).optional(),
 });
 
 export const postSchema = contentCreateBaseSchema.extend({

@@ -37,14 +37,13 @@ import {
 
 export const userRoutes = express.Router();
 
-userRoutes.get('/', getAllUsers);
-
-userRoutes.get(
-  '/:id',
-  validateReqParams(idSchema),
-  validateReqQuery(profileSchema),
-  getUserById
+userRoutes.patch(
+  '/:id/onboarding',
+  validateReqBody(onboardingSchema),
+  updateUserOnboarding
 );
+
+userRoutes.get('/', getAllUsers);
 
 userRoutes.get(
   '/:id/content',
@@ -74,13 +73,6 @@ userRoutes.delete(
   unfollowUser
 );
 
-userRoutes.patch(
-  '/:id',
-  validateReqParams(idSchema),
-  validateReqBody(profileSchema),
-  updateUserProfile
-);
-
 userRoutes.get(
   '/email/:email',
   validateReqParams(paramsEmailSchema),
@@ -97,10 +89,18 @@ userRoutes.post(
   loginUserWithProvider
 );
 
-userRoutes.patch(
-  '/:id/onboarding',
-  validateReqBody(onboardingSchema),
-  updateUserOnboarding
+userRoutes.delete('/:id', validateReqParams(idSchema), deleteUser);
+
+userRoutes.get(
+  '/:id',
+  validateReqParams(idSchema),
+  validateReqQuery(profileSchema),
+  getUserById
 );
 
-userRoutes.delete('/:id', validateReqParams(idSchema), deleteUser);
+userRoutes.patch(
+  '/:id',
+  validateReqParams(idSchema),
+  validateReqBody(profileSchema),
+  updateUserProfile
+);

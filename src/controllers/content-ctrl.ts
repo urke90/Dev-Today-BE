@@ -238,8 +238,6 @@ export const getAllTags = async (
   }
 };
 
-/** *************************************************************** CREATE ********************************************************** */
-
 export const createPost = async (
   req: TypedRequestBody<typeof postSchema>,
   res: Response
@@ -386,10 +384,6 @@ export const createPodcast = async (
     res.status(500).json({ message: 'Internal server error!' });
   }
 };
-
-/** *************************************************************** CREATE ***********************************************************/
-
-/** *************************************************************** UPDATE ***********************************************************/
 
 export const updatePost = async (
   req: TypedRequest<
@@ -611,6 +605,113 @@ export const updatePodcast = async (
   }
 };
 
+export const deleteContent = async (
+  req: TypedRequest<typeof idSchema, never, typeof viewerIdSchema>,
+  res: Response
+) => {
+  const contentId = req.params.id;
+  const userId = req.body.viewerId;
+
+  try {
+    const contentToDelete = await prisma.content.findUnique({
+      where: {
+        id: contentId,
+      },
+    });
+
+    if (!contentToDelete)
+      return res.status(404).json({ message: 'Content not found' });
+
+    if (contentToDelete.authorId !== userId)
+      return res.status(403).json({ message: 'Forbidden' });
+
+    await prisma.content.delete({
+      where: {
+        id: contentId,
+      },
+    });
+
+    res.status(200).json({ meessage: 'Content deleted successfully' });
+  } catch (error) {
+    console.log('Error deleting content', error);
+    res.status(500).json({ message: 'Internal server error!' });
+  }
+};
+
+export const likeContent = async (
+  req: TypedRequest<typeof idSchema, never, typeof contentIdSchema>,
+  res: Response
+) => {
+  const id = req.params.id;
+  const contentId = req.body.contentId;
+  try {
+    const existingLike = await prisma.like.findUnique({
+      where: { userId_contentId: { userId: id, contentId } },
+    });
+    if (existingLike) {
+      return res.status(409).json({ message: 'Existing like.' });
+    }
+
+    await prisma.$transaction([
+      prisma.like.create({
+        data: {
+          userId: id!,
+          contentId,
+        },
+      }),
+      prisma.content.update({
+        where: { id: contentId },
+        data: {
+          likesCount: {
+            increment: 1,
+          },
+        },
+      }),
+    ]);
+    res.json({ message: 'Liked.' });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Oops! An internal server error occurred on our end.',
+    });
+  }
+};
+
+export const dislikeContent = async (
+  req: TypedRequest<typeof idSchema, never, typeof contentIdSchema>,
+  res: Response
+) => {
+  const id = req.params.id;
+  const { contentId } = req.body;
+
+  try {
+    const existingLike = await prisma.like.findUnique({
+      where: { userId_contentId: { userId: id, contentId } },
+    });
+    if (!existingLike) {
+      return res.status(404).json({ message: 'Liked content is not found.' });
+    }
+
+    await prisma.$transaction([
+      prisma.like.delete({
+        where: { userId_contentId: { userId: id, contentId } },
+      }),
+      prisma.content.update({
+        where: { id: contentId },
+        data: {
+          likesCount: {
+            decrement: 1,
+          },
+        },
+      }),
+    ]);
+    res.json({ message: 'Like removed.' });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Oops! An internal server error occurred on our end.',
+    });
+  }
+};
+
 /** *************************************************************** COMMENTS ***********************************************************/
 
 export const getAllComments = async (
@@ -778,6 +879,7 @@ export const updateComment = async (
     res.status(500).json({ message: 'Internal server error!' });
   }
 };
+
 export const createUpdateCommentLike = async (
   req: TypedRequestBody<typeof likeCommentsSchema>,
   res: Response
@@ -986,77 +1088,3 @@ export const getContentStatsSidebar = async (
 };
 
 /** *************************************************************** UPDATE ***********************************************************/
-
-export const createLike = async (
-  req: TypedRequest<typeof idSchema, never, typeof contentIdSchema>,
-  res: Response
-) => {
-  const id = req.params.id;
-  const { contentId } = req.body;
-  try {
-    const existingLike = await prisma.like.findUnique({
-      where: { userId_contentId: { userId: id, contentId } },
-    });
-    if (existingLike) {
-      return res.status(409).json({ message: 'Existing like.' });
-    }
-
-    await prisma.$transaction([
-      prisma.like.create({
-        data: {
-          userId: id!,
-          contentId,
-        },
-      }),
-      prisma.content.update({
-        where: { id: contentId },
-        data: {
-          likesCount: {
-            increment: 1,
-          },
-        },
-      }),
-    ]);
-    res.json({ message: 'Liked.' });
-  } catch (error) {
-    res.status(500).json({
-      message: 'Oops! An internal server error occurred on our end.',
-    });
-  }
-};
-
-export const removeLike = async (
-  req: TypedRequest<typeof idSchema, never, typeof contentIdSchema>,
-  res: Response
-) => {
-  const id = req.params.id;
-  const { contentId } = req.body;
-
-  try {
-    const existingLike = await prisma.like.findUnique({
-      where: { userId_contentId: { userId: id, contentId } },
-    });
-    if (!existingLike) {
-      return res.status(404).json({ message: 'Liked content is not found.' });
-    }
-
-    await prisma.$transaction([
-      prisma.like.delete({
-        where: { userId_contentId: { userId: id, contentId } },
-      }),
-      prisma.content.update({
-        where: { id: contentId },
-        data: {
-          likesCount: {
-            decrement: 1,
-          },
-        },
-      }),
-    ]);
-    res.json({ message: 'Like removed.' });
-  } catch (error) {
-    res.status(500).json({
-      message: 'Oops! An internal server error occurred on our end.',
-    });
-  }
-};
