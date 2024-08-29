@@ -6,18 +6,19 @@ import {
 
 import {
   createComment,
-  createLike,
   createMeetup,
   createPodcast,
   createPost,
   createUpdateCommentLike,
   deleteComment,
+  deleteContent,
+  dislikeContent,
   getAllComments,
   getAllTags,
   getContent,
   getContentById,
   getContentStatsSidebar,
-  removeLike,
+  likeContent,
   updateComment,
   updateMeetup,
   updatePodcast,
@@ -55,8 +56,6 @@ contentRoutes.get(
   validateReqQuery(getAllContentSidebarDetailsSchema),
   getContentStatsSidebar
 );
-
-contentRoutes.get('/:id', validateReqParams(idSchema), getContentById);
 
 /** *************************************************************** CREATE ********************************************************** */
 
@@ -126,12 +125,21 @@ contentRoutes.post(
   '/:id/like',
   validateReqParams(idSchema),
   validateReqBody(contentIdSchema),
-  createLike
+  likeContent
 );
 
 contentRoutes.delete(
   '/:id/dislike',
   validateReqParams(idSchema),
   validateReqBody(contentIdSchema),
-  removeLike
+  dislikeContent
 );
+
+contentRoutes.delete(
+  '/:id/delete',
+  validateReqParams(idSchema),
+  validateReqBody(viewerIdSchema),
+  deleteContent
+);
+
+contentRoutes.get('/:id', validateReqParams(idSchema), getContentById);

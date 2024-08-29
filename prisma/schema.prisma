@@ -83,14 +83,14 @@ model MeetupLocation {
   address   String
   lat       Float
   lng       Float
-  content   Content? @relation(fields: [contentId], references: [id])
+  content   Content? @relation(fields: [contentId], references: [id], onDelete: Cascade)
   contentId String?  @unique
 }
 
 model Like {
   user      User    @relation(fields: [userId], references: [id])
   userId    String
-  content   Content @relation(fields: [contentId], references: [id])
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
   contentId String
 
   @@id([userId, contentId])
@@ -110,9 +110,9 @@ model Comment {
   author       User      @relation(fields: [authorId], references: [id])
   authorId     String
   contentId    String
-  content      Content   @relation(fields: [contentId], references: [id])
+  content      Content   @relation(fields: [contentId], references: [id], onDelete: Cascade)
   likes        User[]    @relation("CommentLikes")
-  replyingTo   Comment?  @relation("replyingTo", fields: [replyingToId], references: [id])
+  replyingTo   Comment?  @relation("replyingTo", fields: [replyingToId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   replyingToId String?
   replies      Comment[] @relation("replyingTo")
 }
