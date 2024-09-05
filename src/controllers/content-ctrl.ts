@@ -78,6 +78,17 @@ export const getContent = async (
       };
     }
 
+    if (type === EContentType.POST || type === EContentType.PODCAST) {
+      include = {
+        ...include,
+        likes: {
+          where: {
+            userId: viewerId,
+          },
+        },
+      };
+    }
+
     if (tag !== '') {
       where = {
         ...where,
@@ -102,6 +113,7 @@ export const getContent = async (
             userName: true;
           };
         };
+        likes: true;
       };
       skip: number;
       take: number;
@@ -137,6 +149,7 @@ export const getContent = async (
           commentsCount: content.commentsCount,
           author: content.author,
           createdAt: content.createdAt,
+          isLiked: content.likes.length > 0,
         };
       } else if (content.type === EContentType.MEETUP) {
         return {
@@ -157,6 +170,7 @@ export const getContent = async (
           tags: content.tags,
           author: content.author,
           createdAt: content.createdAt,
+          isLiked: content.likes.length > 0,
         };
       }
     });
