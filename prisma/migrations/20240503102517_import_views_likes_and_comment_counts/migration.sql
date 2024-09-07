@@ -1,4 +1,0 @@
--- AlterTable
-ALTER TABLE "Content" ADD COLUMN     "commentsCount" INTEGER DEFAULT 0,
-ADD COLUMN     "likes" INTEGER DEFAULT 0,
-ADD COLUMN     "views" INTEGER DEFAULT 0;
